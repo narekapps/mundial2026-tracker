@@ -589,6 +589,60 @@ body{background:var(--bg);color:var(--text);
   border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;
   color:rgba(255,255,255,0.8);line-height:1.5;font-weight:600}
 .help-tip::before{content:"💡 ";font-size:14px}
+
+/* ── Intercambio Inteligente ─────────────────────────────────────────────── */
+
+/* Layer 1: Discovery modal */
+.intercambio-modal{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:460;
+  display:none;align-items:center;justify-content:center;padding:20px}
+.intercambio-modal.active{display:flex}
+.intercambio-modal-box{background:linear-gradient(135deg,#0d1528,#111827);
+  border:2px solid var(--gold);border-radius:20px;padding:24px;
+  max-width:360px;width:100%;text-align:center;
+  animation:bubbleIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+.im-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;
+  text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:6px}
+.im-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;font-weight:600}
+.im-demo{display:flex;align-items:center;justify-content:center;gap:12px;
+  background:var(--s2);border-radius:12px;padding:14px;margin-bottom:20px}
+.im-user{display:flex;flex-direction:column;align-items:center;gap:4px}
+.im-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:22px;border:2px solid var(--gold)}
+.im-name{font-size:10px;color:var(--muted);font-weight:700}
+.im-arrow{font-size:24px;animation:pulse 1.5s infinite}
+.im-code{font-family:monospace;font-size:11px;font-weight:900;color:var(--gold);
+  background:var(--s1);border:1px solid var(--gold2);border-radius:6px;
+  padding:3px 8px;margin-top:2px}
+
+/* Layer 2: Intercambios card in dashboard */
+.intercambio-promo-card{background:linear-gradient(135deg,rgba(0,61,165,0.3),rgba(255,215,0,0.08));
+  border:1.5px solid rgba(255,215,0,0.3);border-radius:12px;padding:12px 14px;
+  margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:all 0.2s}
+.intercambio-promo-card:active{transform:scale(0.98)}
+.ipc-ico{font-size:28px;flex-shrink:0}
+.ipc-txt .t{font-size:13px;font-weight:800;color:var(--text)}
+.ipc-txt .s{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+.ipc-arrow{font-size:18px;color:var(--gold);margin-left:auto;flex-shrink:0}
+
+/* Layer 3: Floating action buttons */
+.fab-group{position:fixed;bottom:calc(70px + var(--safe-bottom) + 8px);right:14px;
+  display:flex;flex-direction:column;gap:8px;z-index:50}
+.fab{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  font-weight:900;transition:transform 0.2s;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.fab:active{transform:scale(0.88)}
+.fab-help{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0e1a}
+.fab-intercambio{background:linear-gradient(135deg,#003da5,#1a56d4);color:#fff;
+  font-size:18px}
+
+/* Layer 4: Pulsing badge */
+@keyframes badgePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,0.4)}
+  50%{box-shadow:0 0 0 6px rgba(255,215,0,0)}
+}
+.badge-pulse{animation:badgePulse 2s infinite}
 </style>
 </head>
 <body>
@@ -979,9 +1033,9 @@ body{background:var(--bg);color:var(--text);
 
   <!-- ── PAGE: CONFIG ── -->
   <div class="page" id="page-config">
-    <div class="apikey-card" style="opacity:0.5;pointer-events:none">
+    <div class="apikey-card" style="display:none">
       <div class="apikey-title">🔑 API Key de Gemini</div>
-      <div class="apikey-hint">✅ API key configurada por el administrador. No es necesario cambiarla.</div>
+      <div class="apikey-hint">✅ API key configurada por el administrador.</div>
       <div class="apikey-row">
         <input type="password" class="apikey-inp" id="api-inp" placeholder="AIza...">
         <button class="apikey-save" onclick="saveKey()">Guardar</button>
@@ -989,10 +1043,20 @@ body{background:var(--bg);color:var(--text);
       <div class="apikey-ok" id="apikey-ok">✅ API key guardada</div>
     </div>
 
-    <div class="sec-title">Selección favorita (countdown)</div>
-    <div id="fav-sel-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+    <!-- 1. Comparar colección -->
+    <div class="sec-title">🤝 Comparar con otro coleccionista</div>
+    <div class="card">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
+        Compartí tu código con otro coleccionista para ver qué figuritas pueden intercambiar.
+      </p>
+      <button class="btn btn-gold" style="margin-bottom:8px" onclick="generarCodigo()">📤 Generar mi código</button>
+      <input type="text" class="search-inp" id="import-code" placeholder="Pegá el código del otro coleccionista..." style="margin-bottom:6px">
+      <button class="btn btn-outline" onclick="compararCodigo()">🤝 Comparar colección</button>
+    </div>
+    <div id="comparar-results"></div>
 
-    <div class="sec-title">Colección</div>
+    <!-- 2. Colección -->
+    <div class="sec-title">📁 Colección</div>
     <button class="export-btn" onclick="exportJSON('todo')">⬇️ Exportar colección completa</button>
     <button class="export-btn" style="margin-top:6px;color:var(--green);border-color:var(--green-bd)"
       onclick="backupColeccion()">💾 Backup completo (colección + config)</button>
@@ -1004,16 +1068,19 @@ body{background:var(--bg);color:var(--text);
     <button class="export-btn" style="margin-top:6px;color:var(--amber);border-color:var(--amber-bd)"
       onclick="reiniciarColeccion()">🔄 Reinicializar colección</button>
 
-    <div class="sec-title">Comparar con otro coleccionista</div>
-    <div class="card">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">
-        Compartí tu código con otro coleccionista para ver qué figuritas pueden intercambiar.
-      </p>
-      <button class="btn btn-gold" style="margin-bottom:8px" onclick="generarCodigo()">📤 Generar mi código</button>
-      <input type="text" class="search-inp" id="import-code" placeholder="Pegá el código del otro coleccionista..." style="margin-bottom:6px">
-      <button class="btn btn-outline" onclick="compararCodigo()">🤝 Comparar colección</button>
+    <!-- 3. Selección favorita - compact dropdown -->
+    <div class="sec-title">⭐ Selección favorita (countdown)</div>
+    <div style="position:relative;margin-bottom:14px">
+      <select id="fav-sel-select" onchange="setFavSel(this.value)"
+        style="width:100%;background:var(--s2);border:1.5px solid var(--border2);
+        color:var(--text);border-radius:10px;padding:12px 14px;font-size:14px;
+        font-weight:700;font-family:'Nunito',sans-serif;outline:none;
+        appearance:none;cursor:pointer">
+      </select>
+      <div style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+        pointer-events:none;color:var(--gold);font-size:16px">▼</div>
     </div>
-    <div id="comparar-results"></div>
+    <div id="fav-sel-list" style="display:none"></div>
   </div>
 
 </div>
@@ -1304,7 +1371,55 @@ body{background:var(--bg);color:var(--text);
 </div>
 
 <!-- Help button -->
-<button class="help-general" id="help-btn" onclick="openHelp()" title="Centro de Ayuda">?</button>
+<!-- FAB group: help + intercambio -->
+<div class="fab-group">
+  <button class="fab fab-intercambio" id="fab-intercambio"
+    onclick="goToComparar()" title="Comparar con amigo">🤝</button>
+  <button class="fab fab-help" id="help-btn"
+    onclick="openHelp()" title="Centro de Ayuda">?</button>
+</div>
+
+<!-- Layer 1: Discovery modal -->
+<div class="intercambio-modal" id="intercambio-discovery">
+  <div class="intercambio-modal-box">
+    <div style="font-size:40px;margin-bottom:8px">🤝</div>
+    <div class="im-title">¡Intercambiá figuritas!</div>
+    <div class="im-sub">Comparé tu colección con la de un amigo y descubrí exactamente qué pueden intercambiar.</div>
+    <div class="im-demo">
+      <div class="im-user">
+        <div class="im-avatar" style="background:rgba(0,61,165,0.3)">😊</div>
+        <div class="im-name">Vos</div>
+        <div class="im-code">ABC123</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div class="im-arrow">⇄</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:700">WhatsApp</div>
+      </div>
+      <div class="im-user">
+        <div class="im-avatar" style="background:rgba(255,215,0,0.15)">🧑</div>
+        <div class="im-name">Tu amigo</div>
+        <div class="im-code">XYZ789</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;font-weight:600">
+      Cada uno genera su código y se lo manda al otro.<br>
+      La app cruza las colecciones automáticamente.
+    </div>
+    <button onclick="closeDiscovery(true)"
+      style="width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#0a0e1a;border:none;border-radius:10px;padding:13px;
+      font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
+      margin-bottom:8px">
+      🚀 ¡Quiero comparar ahora!
+    </button>
+    <button onclick="closeDiscovery(false)"
+      style="width:100%;background:transparent;border:1px solid var(--border);
+      color:var(--muted);border-radius:10px;padding:10px;
+      font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif">
+      Después
+    </button>
+  </div>
+</div>
 
 <!-- Nav -->
 <nav class="nav">
@@ -2174,15 +2289,15 @@ function renderConfig(){
   const key=getKey();
   if(key){$("api-inp").value="••••••••••••";$("apikey-ok").style.display="block";}
 
-  // Fav selection picker
-  $("fav-sel-list").innerHTML=SELECTIONS_ORDER.map(ab=>`
-    <div onclick="setFavSel('${ab}')"
-      style="padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;
-      background:${favSel===ab?"var(--gold3)":"var(--s2)"};
-      border:1px solid ${favSel===ab?"var(--gold2)":"var(--border)"};
-      color:${favSel===ab?"var(--gold)":"var(--muted)"}">
-      ${ab}
-    </div>`).join("");
+  // Fav selection dropdown
+  const selSelect = $("fav-sel-select");
+  if(selSelect){
+    selSelect.innerHTML = SELECTIONS_ORDER.map(ab => {
+      const sel = MASTER_DB.find(s=>s.ab===ab && s.ti==="escudo");
+      const name = sel ? sel.sel : ab;
+      return `<option value="${ab}" ${ab===favSel?"selected":""}>${ab} — ${name}</option>`;
+    }).join("");
+  }
 }
 
 function setFavSel(ab){
@@ -2761,16 +2876,19 @@ function renderTourStep(){
 
   // Arrow pointing to target
   const arrow = $("tour-arrow");
-  const arrowX = rect.left + rect.width/2 - 12;
-  // Arrow above target if target is in bottom half, below if top half
+  // Keep arrow within screen bounds
+  const arrowX = Math.max(8, Math.min(
+    rect.left + rect.width/2 - 12, 
+    window.innerWidth - 40
+  ));
   const inBottom = rect.top > window.innerHeight * 0.5;
   if(inBottom){
-    arrow.style.top = (rect.top - 36) + "px";
+    arrow.style.top = Math.max(8, rect.top - 36) + "px";
     arrow.style.left = arrowX + "px";
     arrow.textContent = "👇";
     arrow.style.bottom = "auto";
   } else {
-    arrow.style.top = (rect.bottom + 8) + "px";
+    arrow.style.top = Math.min(rect.bottom + 8, window.innerHeight - 40) + "px";
     arrow.style.left = arrowX + "px";
     arrow.textContent = "👆";
     arrow.style.bottom = "auto";
@@ -3183,4 +3301,69 @@ function showHelpAnswer(key){
     ${stepsHtml}
     ${ans.tip ? `<div class="help-tip">${ans.tip}</div>` : ''}`;
 }
+</script>
+<script>
+// ── Intercambio Inteligente ────────────────────────────────────────────────
+
+function goToComparar(){
+  showPage("config");
+  // Scroll to comparar section
+  setTimeout(()=>{
+    const el = document.querySelector("#page-config .card");
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+  }, 300);
+}
+
+function showDiscoveryModal(){
+  if(localStorage.getItem("mt_discovery_seen")) return;
+  $("intercambio-discovery").classList.add("active");
+}
+
+function closeDiscovery(goNow){
+  $("intercambio-discovery").classList.remove("active");
+  localStorage.setItem("mt_discovery_seen","1");
+  if(goNow) goToComparar();
+}
+
+// Layer 4: pulse badge when intercambios > 3
+function checkIntercambioBadge(){
+  const count = Object.values(coll.intercambios||{}).reduce((a,b)=>a+b,0);
+  const fab = $("fab-intercambio");
+  if(!fab) return;
+  if(count >= 3){
+    fab.classList.add("badge-pulse");
+    // Add count badge
+    let badge = document.getElementById("fab-intercambio-badge");
+    if(!badge){
+      badge = document.createElement("div");
+      badge.id = "fab-intercambio-badge";
+      badge.style.cssText = `position:absolute;top:-4px;right:-4px;background:var(--gold);
+        color:#0a0e1a;border-radius:99px;font-size:9px;font-weight:900;
+        padding:1px 5px;min-width:16px;text-align:center;pointer-events:none`;
+      fab.style.position = "relative";
+      fab.appendChild(badge);
+    }
+    badge.textContent = count;
+  } else {
+    fab.classList.remove("badge-pulse");
+    const badge = document.getElementById("fab-intercambio-badge");
+    if(badge) badge.remove();
+  }
+}
+
+// Hook into markIntercambio to show discovery modal on first intercambio
+const _origMarkInt = markIntercambio;
+window.markIntercambio = function(id, count){
+  _origMarkInt(id, count);
+  // Show discovery modal first time
+  if(!localStorage.getItem("mt_discovery_seen")){
+    setTimeout(showDiscoveryModal, 1500);
+  }
+  checkIntercambioBadge();
+};
+
+// Check badge on load
+document.addEventListener("DOMContentLoaded", ()=>{
+  setTimeout(checkIntercambioBadge, 1000);
+});
 </script>
