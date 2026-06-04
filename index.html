@@ -141,7 +141,9 @@ body{background:var(--bg);color:var(--text);
   box-shadow:inset 0 0 20px rgba(255,215,0,0.08)}
 
 .vf-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:10px}
-.viewfinder{position:relative;width:min(280px,80vw);height:min(373px,106.7vw);
+.viewfinder{position:relative;width:min(260px,78vw);
+  height:min(320px,calc(100vh - 320px));
+  min-height:180px;
   background:#000;border-radius:16px;overflow:hidden;
   box-shadow:0 0 0 3px var(--gold),0 0 30px rgba(255,215,0,0.3),
              0 8px 32px rgba(0,0,0,0.5)}
@@ -439,8 +441,9 @@ body{background:var(--bg);color:var(--text);
 .help-general:active{transform:scale(0.9)}
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
-.app-footer{text-align:center;padding:8px;font-size:9px;color:var(--muted2);
-  letter-spacing:2px;text-transform:uppercase;font-weight:700;flex-shrink:0}
+.app-footer{text-align:center;padding:4px;font-size:8px;color:var(--muted2);
+  letter-spacing:1px;text-transform:uppercase;font-weight:700;flex-shrink:0;
+  line-height:1.3}
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes splashIn{from{opacity:0;transform:scale(0.8) translateY(20px)}to{opacity:1;transform:none}}
@@ -797,11 +800,11 @@ body{background:var(--bg);color:var(--text);
   <div class="page active" id="page-scanner">
 
     <!-- Dos botones: cámara directa + galería -->
-    <div id="upload-label" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div id="upload-label" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;width:100%">
       <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:6px;background:linear-gradient(135deg,#003da5,#1a56d4);
         border:2px solid rgba(255,215,0,0.3);border-radius:var(--radius);
-        padding:16px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
+        padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
         box-shadow:0 4px 16px rgba(0,61,165,0.3)">
         <span style="font-size:28px">📷</span>
         <span style="font-size:13px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Cámara</span>
@@ -812,7 +815,7 @@ body{background:var(--bg);color:var(--text);
       <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:6px;background:linear-gradient(135deg,#1a2035,#2a3a5c);
         border:2px solid rgba(255,255,255,0.1);border-radius:var(--radius);
-        padding:16px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
+        padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
         box-shadow:0 4px 16px rgba(0,0,0,0.2)">
         <span style="font-size:28px">🖼️</span>
         <span style="font-size:13px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Galería</span>
@@ -2522,7 +2525,7 @@ function closeModal(id){$(id).classList.remove("active");}
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 // ── License system ────────────────────────────────────────────────────────
-const SERVER_URL = "https://mundial2026-server-lqqu.onrender.com"; // cambiar por URL real
+const SERVER_URL = "https://mundial2026-server-lqqu.onrender.com";
 
 function getFingerprint(){
   const data = [
