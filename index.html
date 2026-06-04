@@ -912,8 +912,8 @@ body{background:var(--bg);color:var(--text);
     </div>
 
     <div class="mode-row" id="mode-row" style="display:none">
-      <div class="mode-btn active" id="mode-1" onclick="setMode(false)">📷 1 Figurita</div>
-      <div class="mode-btn" id="mode-m" onclick="setMode(true)">📚 Varias</div>
+      <div class="mode-btn" id="mode-1" onclick="setModeAndIdentify(false)">📷 1 Figurita</div>
+      <div class="mode-btn" id="mode-m" onclick="setModeAndIdentify(true)">📚 Varias</div>
     </div>
 
     <div id="scan-btns" style="display:none">
@@ -1751,7 +1751,11 @@ function setMode(m){
   multiMode=m;
   $("mode-1").classList.toggle("active",!m);
   $("mode-m").classList.toggle("active",m);
-  $("btn-identify").textContent=m?"📚 Identificar Todas":"🔍 Identificar";
+}
+
+function setModeAndIdentify(m){
+  setMode(m);
+  identify();
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────
@@ -1952,7 +1956,6 @@ function markIntercambio(id,idx){
 // ── Identify ──────────────────────────────────────────────────────────────
 async function identify(){
   if(!origW){showErr("Subí una foto primero.");return;}
-  $("btn-identify").disabled=true;
   $("prog-box").style.display="block";
   $("scan-results").innerHTML="";
   $("err-box").style.display="none";
@@ -2815,9 +2818,9 @@ const TOUR_STEPS = [
   {target:"upload-label", ico:"📸",
    title:"Subí la foto",
    text:"Usá la cámara para sacar la foto directo, o elegí una desde tu galería. Ajustá el tamaño si hace falta."},
-  {target:"btn-identify", ico:"🔍",
+  {target:"mode-row", ico:"🔍",
    title:"Identificar figurita",
-   text:"Tocá este botón para que la IA analice la foto y encuentre la figurita en la base de datos."},
+   text:"Elegí '1 Figurita' o 'Varias' — la IA analiza la foto automáticamente sin botón extra."},
   {target:"nav-coleccion", ico:"📖",
    title:"Tu colección",
    text:"Seguí tu progreso. Ves cuántas pegaste, cuáles te faltan y cuáles tenés para intercambiar con amigos."},
