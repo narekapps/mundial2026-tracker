@@ -170,8 +170,9 @@ body{background:var(--bg);color:var(--text);
 .ctrl-row:last-child{margin-bottom:0}
 .ctrl-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;min-width:50px}
 .ctrl-btn{background:var(--s2);border:1px solid var(--border);color:var(--text);
-  border-radius:6px;width:30px;height:30px;font-size:14px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  border-radius:6px;width:26px;height:26px;font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  font-family:inherit;font-weight:700}
 .ctrl-btn:active{transform:scale(0.9)}
 .ctrl-val{font-size:11px;color:var(--muted);flex:1;text-align:center}
 
@@ -913,7 +914,7 @@ body{background:var(--bg);color:var(--text);
 
     <div class="mode-row" id="mode-row" style="display:none">
       <div class="mode-btn" id="mode-1" onclick="setModeAndIdentify(false)">📷 1 Figurita</div>
-      <div class="mode-btn" id="mode-m" onclick="setModeAndIdentify(true)">📚 Varias</div>
+      <div class="mode-btn" id="mode-m" onclick="setModeAndIdentify(true)">📚 Varias <span style="font-size:9px;opacity:0.7">(máx. 5)</span></div>
     </div>
 
     <div id="scan-btns" style="display:none">
@@ -1770,7 +1771,13 @@ function setMode(m){
 
 function setModeAndIdentify(m){
   setMode(m);
-  identify();
+  if(m){
+    // Show max 5 tip briefly before identifying
+    toast("📚 Modo Varias — máximo 5 figuritas por foto", 2500);
+    setTimeout(identify, 400);
+  } else {
+    identify();
+  }
 }
 
 // ── Progress ──────────────────────────────────────────────────────────────
