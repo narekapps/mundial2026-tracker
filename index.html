@@ -1733,16 +1733,31 @@ $("file-input").onchange=e=>{if(e.target.files[0])loadImage(e.target.files[0]);}
 $("file-input-gallery").onchange=e=>{if(e.target.files[0])loadImage(e.target.files[0]);};
 
 function clearScan(){
-  origW=0;$("sticker-img").style.display="none";$("sticker-img").src="";
+  origW=0;
+  $("sticker-img").style.display="none";
+  $("sticker-img").src="";
   $("vf-prompt").classList.remove("hidden");
   $("vf-controls").style.display="none";
-  $("mode-row").style.display="none";
-  $("scan-btns").style.display="none";
-  $("vf-wrap").style.display="none";
-  $("upload-label").style.display="block";
   $("scan-results").innerHTML="";
   $("err-box").style.display="none";
   $("file-input").value="";
+  const fg=$("file-input-gallery"); if(fg) fg.value="";
+
+  // Reset mode buttons — no pre-selection
+  $("mode-1").classList.remove("active");
+  $("mode-m").classList.remove("active");
+  multiMode=false;
+
+  // Reset progress bar
+  $("prog-box").style.display="none";
+  const pb=$("prog-bar"); if(pb) pb.style.width="0%";
+  const pt=$("prog-txt"); if(pt) pt.textContent="";
+
+  // Keep viewfinder and upload buttons visible (don't reset layout)
+  $("vf-wrap").style.display="flex";
+  $("upload-label").style.display="grid";
+  $("mode-row").style.display="none";
+  $("scan-btns").style.display="none";
 }
 
 // ── Mode ──────────────────────────────────────────────────────────────────
