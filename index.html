@@ -3263,9 +3263,13 @@ function bootApp(){
     }
     if(coll.pegadas.length || Object.keys(coll.intercambios).length) showDashboardBtn();
     renderCountdown();
-    const tourCount = parseInt(localStorage.getItem("mt_tour_count")||"0");
-    if(tourCount < 4){
-      setTimeout(startTour, 2000);
+    // Only fire tour from bootApp if album already initialized
+    // (first-time tour is handled by confirmInit/skipInit)
+    if(localStorage.getItem("mt_init")){
+      const tourCount = parseInt(localStorage.getItem("mt_tour_count")||"0");
+      if(tourCount < 4){
+        setTimeout(startTour, 2000);
+      }
     }
   } catch(e) {
     console.error("bootApp error:", e.message);
