@@ -694,7 +694,7 @@ body{background:var(--bg);color:var(--text);
         position:relative;overflow:hidden">
         <div style="position:absolute;inset:0;background:repeating-linear-gradient(
           45deg,transparent,transparent 8px,rgba(255,255,255,0.03) 8px,rgba(255,255,255,0.03) 9px)"></div>
-        <div style="line-height:1;position:relative"><img src="/mundial2026-tracker/icon-192.png" style="width:72px;height:72px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
+        <div style="line-height:1;position:relative"><img src="/mundial2026-tracker/icon-192.png" style="width:216px;height:216px;border-radius:32px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
       </div>
       <h1 style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;
         margin-bottom:4px;text-transform:uppercase;letter-spacing:2px">
@@ -853,7 +853,7 @@ body{background:var(--bg);color:var(--text);
 <!-- Init overlay -->
 <div class="init-overlay" id="init-overlay">
   <div class="init-header" id="init-header">
-    <div style="font-size:36px;margin-bottom:8px">⚽</div>
+    <div style="margin-bottom:10px"><img src="/mundial2026-tracker/icon-192.png" style="width:80px;height:80px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></div>
     <h2>¡Bienvenido al<br>Mundial 2026 Tracker!</h2>
     <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px">
       Para que este álbum sea igual a tu álbum físico, seguí los siguientes pasos:
@@ -2759,7 +2759,7 @@ function closeModificar(){
   // Restore init overlay to original state
   $("init-choice").style.display="grid";
   $("init-header").innerHTML=`
-    <div style="font-size:36px;margin-bottom:8px">⚽</div>
+    <div style="margin-bottom:10px"><img src="/mundial2026-tracker/icon-192.png" style="width:80px;height:80px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></div>
     <h2>¡Bienvenido al<br>Mundial 2026 Tracker!</h2>`;
   $("init-overlay").classList.remove("active");
   $("init-stickers").style.display="none";
@@ -2871,22 +2871,19 @@ function confirmInit(){
     $("init-choice").style.display="grid";
     $("init-stickers").style.display="none";
     $("init-header").innerHTML=`
-      <div style="font-size:36px;margin-bottom:8px">⚽</div>
+      <div style="margin-bottom:10px"><img src="/mundial2026-tracker/icon-192.png" style="width:80px;height:80px;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></div>
       <h2>¡Bienvenido al<br>Mundial 2026 Tracker!</h2>`;
     $("init-overlay").classList.remove("active");
     initChecked=new Set();
     if(confirmBtn){ confirmBtn.disabled=false; confirmBtn.textContent="✅ Confirmar inicialización"; }
     toast(`✅ Guardado — ${pegadas.length} figuritas pegadas`, 3000);
     if(activeDash==="progreso") setTimeout(renderProgreso, 100);
-    // Fire tour after first init
-    setTimeout(startTour, 2000);
   }, 50);
 }
 
 function skipInit(){
   localStorage.setItem("mt_init","1");
   $("init-overlay").classList.remove("active");
-  setTimeout(startTour, 2000);
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────
