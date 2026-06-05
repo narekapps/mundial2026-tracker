@@ -3307,20 +3307,7 @@ function showUpdateBanner(newVersion){
 
 function forceUpdate(){
   // Clear SW cache and reload
-  // ── Fix mobile viewport height on resize (address bar) ───────────────────
-function fixVH(){
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty("--vh", `${vh}px`);
-  // Force layout recalculation
-  document.body.style.height = window.innerHeight + "px";
-}
-fixVH();
-window.addEventListener("resize", fixVH);
-window.addEventListener("orientationchange", ()=>setTimeout(fixVH, 300));
-// Also fix on scroll (address bar hide/show)
-window.addEventListener("scroll", fixVH, {passive:true});
-
-if("serviceWorker" in navigator){
+  if("serviceWorker" in navigator){
     navigator.serviceWorker.getRegistrations().then(regs => {
       regs.forEach(reg => reg.unregister());
     });
@@ -3330,6 +3317,17 @@ if("serviceWorker" in navigator){
   // Hard reload
   setTimeout(()=> window.location.reload(true), 500);
 }
+
+// ── Fix mobile viewport height on resize (address bar) ───────────────────
+function fixVH(){
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty("--vh", `${vh}px`);
+  document.body.style.height = window.innerHeight + "px";
+}
+fixVH();
+window.addEventListener("resize", fixVH);
+window.addEventListener("orientationchange", ()=>setTimeout(fixVH, 300));
+window.addEventListener("scroll", fixVH, {passive:true});
 
 // ── Modo sin servidor (activar cuando el servidor esté en Render) ──────────
 const SERVER_CONFIGURED = true; // servidor activo en Render
