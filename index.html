@@ -1728,11 +1728,15 @@ function loadImage(file){
     $("vf-prompt").classList.add("hidden");
     $("vf-controls").style.display="block";
     $("mode-row").style.display="grid";
+    $("mode-1").classList.remove("active");
+    $("mode-m").classList.remove("active");
     $("scan-btns").style.display="block";
     $("vf-wrap").style.display="flex";
-    $("upload-label").style.display="none"; // hide both camera buttons
+    $("upload-label").style.display="grid";
     $("scan-results").innerHTML="";
     $("err-box").style.display="none";
+    // Hint: tell user to pick mode
+    setTimeout(showModeHint, 300);
   };
   img.src=url;
 }
