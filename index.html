@@ -3082,7 +3082,7 @@ const TOUR_STEPS = [
   {target:"upload-label", ico:"📸",
    title:"Subí la foto",
    text:"Usá la cámara para sacar la foto directo, o elegí una desde tu galería. Ajustá el tamaño si hace falta."},
-  {target:"mode-row", ico:"🔍",
+  {target:null, ico:"🔍",
    title:"Identificar figurita",
    text:"Elegí '1 Figurita' o 'Varias' — la IA analiza la foto automáticamente sin botón extra."},
   {target:"nav-coleccion", ico:"📖",
@@ -3126,17 +3126,20 @@ function renderTourStep(){
   const step = TOUR_STEPS[tourStep];
   $("tour-overlay").classList.add("active");
 
-  const target = $(step.target);
-  if(!target){ tourNext(); return; }
-  const rect = target.getBoundingClientRect();
-  const pad = 6;
-
-  // Highlight target
+  const target = step.target ? $(step.target) : null;
+  if(step.target && !target){ tourNext(); return; }
   const hl = $("tour-highlight");
-  hl.style.left   = (rect.left - pad) + "px";
-  hl.style.top    = (rect.top - pad) + "px";
-  hl.style.width  = (rect.width + pad*2) + "px";
-  hl.style.height = (rect.height + pad*2) + "px";
+  if(target){
+    const rect = target.getBoundingClientRect();
+    const pad = 6;
+    hl.style.left   = (rect.left - pad) + "px";
+    hl.style.top    = (rect.top - pad) + "px";
+    hl.style.width  = (rect.width + pad*2) + "px";
+    hl.style.height = (rect.height + pad*2) + "px";
+    hl.style.display = "block";
+  } else {
+    hl.style.display = "none";
+  }
 
   // Arrow pointing to target
   const arrow = $("tour-arrow");
