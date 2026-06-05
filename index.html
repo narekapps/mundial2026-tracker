@@ -2878,12 +2878,15 @@ function confirmInit(){
     if(confirmBtn){ confirmBtn.disabled=false; confirmBtn.textContent="✅ Confirmar inicialización"; }
     toast(`✅ Guardado — ${pegadas.length} figuritas pegadas`, 3000);
     if(activeDash==="progreso") setTimeout(renderProgreso, 100);
+    // Fire tour after first init
+    setTimeout(startTour, 2000);
   }, 50);
 }
 
 function skipInit(){
   localStorage.setItem("mt_init","1");
   $("init-overlay").classList.remove("active");
+  setTimeout(startTour, 2000);
 }
 
 // ── Modals ────────────────────────────────────────────────────────────────
