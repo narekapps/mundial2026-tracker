@@ -3503,95 +3503,109 @@ function renderAlbumView(){
   const list = $("init-list");
   list.innerHTML = "";
 
-  // Group stickers by selection, skip specials
-  const selGroups = {};
+  // Build lookup by ab
+  const byAb = {};
   MASTER_DB.forEach(s => {
-    if(s.ti==="especial"||s.ti==="especial_cc"||s.ab==="FWC"||s.ab==="CC") return;
-    if(!selGroups[s.ab]) selGroups[s.ab] = [];
-    selGroups[s.ab].push(s);
+    if(!byAb[s.ab]) byAb[s.ab] = [];
+    byAb[s.ab].push(s);
   });
 
-  // Album layout per row (slot numbers as per physical album pages):
-  // Row 1: sn 1, 2, 11, 12, 13
-  // Row 2: sn 3, 4, 5, 6, 14, 15, 16, 17
-  // Row 3: sn 7, 8, 9, 10, 18, 19, 20
-  const ROW1 = [1,2,11,12,13];
-  const ROW2 = [3,4,5,6,14,15,16,17];
-  const ROW3 = [7,8,9,10,18,19,20];
+  // Album row layout
+  const ROW1=[1,2,11,12,13], ROW2=[3,4,5,6,14,15,16,17], ROW3=[7,8,9,10,18,19,20];
 
-  Object.entries(selGroups).forEach(([ab, stickers]) => {
-    const sel = stickers[0].sel;
-    const flag = SEL_FLAGS[ab] || "🏳";
-    const pg = stickers[0].pg;
-    const bySlot = {};
-    stickers.forEach(s => bySlot[s.sn] = s);
+  // Helper: create a slot element
+  function makeSlot(s, flex, minH){
+    const checked = initChecked.has(s.id);
+    const isEscudo = s.ti==="escudo", isEquipo = s.ti==="equipo";
+    const el = document.createElement("div");
+    el.id = "as-"+s.id;
+    el.setAttribute("data-sid", s.id);
+    el.style.cssText = `flex:${flex||1};min-width:0;
+      background:${checked?"rgba(0,230,118,0.18)":isEscudo?"rgba(0,61,165,0.06)":"#fff"};
+      border:${checked?"1.5px solid #00d468":isEscudo?"1px solid rgba(255,215,0,0.5)":"1px solid #ccd"};
+      border-radius:5px;padding:4px 2px;text-align:center;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      min-height:${minH||44}px;transition:all 0.15s;
+      ${checked?"box-shadow:0 0 6px rgba(0,230,118,0.25)":""}`;
+    const nm = s.ap||(s.desc||"").substring(0,12);
+    el.innerHTML = `
+      <div style="font-size:8px;font-weight:900;color:${checked?"#00d468":"#003da5"};font-family:'Barlow Condensed',sans-serif;line-height:1">${s.id}</div>
+      ${isEscudo?`<div style="font-size:12px">🔰</div>`:""}
+      ${isEquipo?`<div style="font-size:11px">📸</div>`:""}
+      ${s.nm?`<div style="font-size:6px;color:#555;font-weight:700;line-height:1.2">${s.nm.substring(0,8)}</div>`:""}
+      <div style="font-size:7px;color:${checked?"#009944":"#333"};font-weight:700;line-height:1.2">${nm.substring(0,10)}</div>
+      ${checked?`<div style="font-size:9px;color:#00d468;font-weight:900;margin-top:1px">✓</div>`:""}`;
+    return el;
+  }
 
+  // Helper: render a page section
+  function makePage(title, flag, pg, content){
     const page = document.createElement("div");
     page.className = "album-page";
-
-    // Header with "WE ARE [SEL]" style
-    page.innerHTML = `
-      <div class="album-page-header">
-        <span class="album-page-flag">${flag}</span>
-        <div>
-          <div style="font-size:9px;color:#003da5;font-weight:900;letter-spacing:1px">WE ARE</div>
-          <div class="album-page-sel">${sel.toUpperCase()}</div>
-        </div>
-        <span style="margin-left:auto;font-size:9px;color:#666;font-weight:700">p.${pg}</span>
-      </div>`;
-
-    // Render rows
-    [ROW1, ROW2, ROW3].forEach((row, ri) => {
-      const rowEl = document.createElement("div");
-      rowEl.style.cssText = `display:flex;gap:3px;margin-bottom:3px`;
-
-      row.forEach(sn => {
-        const s = bySlot[sn];
-        if(!s) return;
-        const checked = initChecked.has(s.id);
-        const slot = document.createElement("div");
-        slot.id = "as-" + s.id;
-
-        // Special styling
-        const isEscudo = s.ti === "escudo";
-        const isEquipo = s.ti === "equipo";
-
-        // Escudo (slot 1) gets 2x width
-        const w = isEscudo ? "2" : isEquipo ? "2" : "1";
-        slot.style.cssText = `
-          flex:${w};min-width:0;background:${checked?"rgba(0,230,118,0.2)":"#fff"};
-          border:${checked?"1.5px solid #00d468":"1px solid #ccd"};
-          border-radius:5px;padding:4px 2px;text-align:center;cursor:pointer;
-          transition:all 0.15s;display:flex;flex-direction:column;
-          align-items:center;justify-content:center;min-height:${ri===0?"52px":"44px"};
-          ${isEscudo?"background:linear-gradient(135deg,rgba(0,61,165,0.08),rgba(255,215,0,0.1));border-color:rgba(255,215,0,0.4)":""}
-          ${checked?"box-shadow:0 0 6px rgba(0,230,118,0.3)":""}`;
-
-        slot.onclick = () => toggleAlbumSlot(s.id);
-
-        const code = `${ab}-${sn}`;
-        const nm = s.ap || (s.desc||"").substring(0,10);
-        const firstName = s.nm ? s.nm.substring(0,7) : "";
-        const lastName = nm.substring(0,9);
-
-        slot.innerHTML = `
-          <div style="font-size:8px;font-weight:900;color:${checked?"#00d468":"#003da5"};
-            font-family:'Barlow Condensed',sans-serif;line-height:1">${code}</div>
-          ${isEscudo ? `<div style="font-size:14px">🔰</div>` : ""}
-          ${isEquipo ? `<div style="font-size:11px">📸</div>` : ""}
-          ${firstName ? `<div style="font-size:6px;color:#666;font-weight:700;line-height:1.2">${firstName}</div>` : ""}
-          <div style="font-size:7px;color:${checked?"#00a854":"#333"};font-weight:700;
-            line-height:1.2;overflow:hidden;max-width:100%">${lastName}</div>
-          ${checked ? `<div style="font-size:8px;color:#00d468;font-weight:900">✓</div>` : ""}`;
-
-        rowEl.appendChild(slot);
-      });
-
-      page.appendChild(rowEl);
+    page.innerHTML = `<div class="album-page-header">
+      <span style="font-size:18px">${flag}</span>
+      <div><div style="font-size:9px;color:#003da5;font-weight:900;letter-spacing:1px">${title[0]}</div>
+      <div class="album-page-sel">${title[1]}</div></div>
+      <span style="margin-left:auto;font-size:9px;color:#777;font-weight:700">p.${pg}</span>
+    </div>`;
+    page.appendChild(content);
+    page.addEventListener("click",(e)=>{
+      const sl=e.target.closest("[data-sid]");
+      if(sl) toggleAlbumSlot(sl.getAttribute("data-sid"));
     });
+    return page;
+  }
 
-    list.appendChild(page);
+  // Helper: render specials as grid
+  function renderSpecialSection(ab, title, flag, color){
+    const stickers = (byAb[ab]||[]).slice().sort((a,b)=>a.sn-b.sn);
+    if(!stickers.length) return;
+    // Group by page
+    const pageGroups = {};
+    stickers.forEach(s=>{
+      const pg = s.pg||0;
+      if(!pageGroups[pg]) pageGroups[pg]=[];
+      pageGroups[pg].push(s);
+    });
+    Object.entries(pageGroups).sort((a,b)=>+a[0]-+b[0]).forEach(([pg, pgStickers])=>{
+      const grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:repeat(4,1fr);gap:3px";
+      pgStickers.forEach(s=> grid.appendChild(makeSlot(s)));
+      list.appendChild(makePage(["",""+title], flag, pg, grid));
+    });
+  }
+
+  // ── RENDER IN ALBUM ORDER ──────────────────────────────────────────────
+
+  // 1. FWC-00 (portada - page 0)
+  renderSpecialSection("FWC", "FIFA World Cup 2026", "⭐", "#003da5");
+
+  // 2. Selecciones pp.8-105 (48 selecciones ordenadas por página)
+  const selList = Object.entries(byAb)
+    .filter(([ab])=>ab!=="FWC"&&ab!=="CC")
+    .map(([ab,stickers])=>({ab, pg: Math.min(...stickers.map(s=>s.pg||999)), stickers}))
+    .sort((a,b)=>a.pg-b.pg);
+
+  selList.forEach(({ab, pg, stickers})=>{
+    const sel = stickers[0].sel||ab;
+    const flag = SEL_FLAGS[ab]||"🏳";
+    const bySlot = {};
+    stickers.forEach(s=>bySlot[s.sn]=s);
+    const content = document.createElement("div");
+    [ROW1,ROW2,ROW3].forEach((row,ri)=>{
+      const rowEl=document.createElement("div");
+      rowEl.style.cssText="display:flex;gap:3px;margin-bottom:3px";
+      row.forEach(sn=>{
+        const s=bySlot[sn]; if(!s)return;
+        rowEl.appendChild(makeSlot(s, sn===1||sn===13?2:1, ri===0?52:44));
+      });
+      content.appendChild(rowEl);
+    });
+    list.appendChild(makePage(["WE ARE", sel.toUpperCase()], flag, pg, content));
   });
+
+  // 3. CC pp.112-113
+  renderSpecialSection("CC", "Coca-Cola", "🥤", "#e8192c");
 }
 
 function toggleAlbumSlot(id){
