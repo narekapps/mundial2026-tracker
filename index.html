@@ -145,6 +145,7 @@ body{background:var(--bg);color:var(--text);
   height:min(320px,calc(100vh - 320px));
   min-height:180px;
   background:#000;border-radius:16px;overflow:hidden;
+  touch-action:none;
   box-shadow:0 0 0 3px var(--gold),0 0 30px rgba(255,215,0,0.3),
              0 8px 32px rgba(0,0,0,0.5)}
 .vf-corner{position:absolute;width:24px;height:24px;z-index:10;pointer-events:none}
@@ -644,6 +645,30 @@ body{background:var(--bg);color:var(--text);
   50%{box-shadow:0 0 0 6px rgba(255,215,0,0)}
 }
 .badge-pulse{animation:badgePulse 2s infinite}
+
+/* ── Album layout for init ───────────────────────────────────────────────── */
+.album-page{background:linear-gradient(135deg,#e8f0ff,#d0e0ff);
+  border-radius:10px;padding:8px;margin-bottom:12px;
+  border:1px solid rgba(0,61,165,0.2)}
+.album-page-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;
+  padding-bottom:6px;border-bottom:2px solid rgba(0,61,165,0.2)}
+.album-page-sel{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
+  color:#003da5;text-transform:uppercase;letter-spacing:1px}
+.album-page-flag{font-size:20px}
+.album-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.album-slot{background:#fff;border:1px solid #ccd;border-radius:6px;
+  padding:4px;text-align:center;cursor:pointer;transition:all 0.15s;
+  min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.album-slot:active{transform:scale(0.93)}
+.album-slot.checked{background:rgba(0,240,118,0.15);border-color:rgba(0,240,118,0.5)}
+.album-slot.checked::after{content:'✓';display:block;font-size:8px;color:#00d468;font-weight:900}
+.album-slot-code{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;
+  color:#003da5}
+.album-slot-name{font-size:7px;color:#555;font-weight:600;line-height:1.2;margin-top:1px}
+.album-slot.escudo{background:linear-gradient(135deg,rgba(0,61,165,0.1),rgba(255,215,0,0.1));
+  border-color:rgba(255,215,0,0.4)}
+.album-slot.equipo{background:linear-gradient(135deg,rgba(0,61,165,0.1),rgba(255,255,255,0.5));
+  grid-column:span 2}
 </style>
 </head>
 <body>
@@ -881,7 +906,7 @@ body{background:var(--bg);color:var(--text);
     </div>
 
     <div class="vf-wrap" id="vf-wrap">
-      <div class="viewfinder" id="viewfinder">
+      <div class="viewfinder" id="viewfinder" onclick="if(!origW) $('file-input').click()" style="cursor:pointer">
         <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
         <div class="vf-corner bl"></div><div class="vf-corner br"></div>
         <div class="vf-prompt" id="vf-prompt">
@@ -891,14 +916,13 @@ body{background:var(--bg);color:var(--text);
         <img id="sticker-img" alt="" draggable="false">
       </div>
       <div class="vf-controls" id="vf-controls">
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Tamaño</span>
+        <div style="display:flex;align-items:center;gap:4px;justify-content:center">
+          <span class="ctrl-lbl">Tam</span>
           <button class="ctrl-btn" id="btn-sm">−</button>
-          <span class="ctrl-val" id="scale-val">100%</span>
+          <span class="ctrl-val" id="scale-val" style="min-width:28px;font-size:10px">100%</span>
           <button class="ctrl-btn" id="btn-lg">＋</button>
-        </div>
-        <div class="ctrl-row">
-          <span class="ctrl-lbl">Mover</span>
+          <div style="width:1px;height:16px;background:var(--border);margin:0 2px"></div>
+          <span class="ctrl-lbl">Mov</span>
           <button class="ctrl-btn" id="btn-lft">←</button>
           <button class="ctrl-btn" id="btn-up">↑</button>
           <button class="ctrl-btn" id="btn-dn">↓</button>
@@ -3374,4 +3398,111 @@ window.markIntercambio = function(id, count){
 document.addEventListener("DOMContentLoaded", ()=>{
   setTimeout(checkIntercambioBadge, 1000);
 });
+</script>
+<script>
+// ── Init view toggle (grid vs album layout) ────────────────────────────────
+let initViewMode = "grid";
+
+const SEL_FLAGS = {
+  ARG:"🇦🇷",BRA:"🇧🇷",FRA:"🇫🇷",ENG:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",GER:"🇩🇪",ESP:"🇪🇸",POR:"🇵🇹",
+  MEX:"🇲🇽",USA:"🇺🇸",CAN:"🇨🇦",URU:"🇺🇾",COL:"🇨🇴",CHI:"🇨🇱",PAR:"🇵🇾",
+  NED:"🇳🇱",BEL:"🇧🇪",CRO:"🇭🇷",SUI:"🇨🇭",DEN:"🇩🇰",SWE:"🇸🇪",NOR:"🇳🇴",
+  JPN:"🇯🇵",KOR:"🇰🇷",AUS:"🇦🇺",MAR:"🇲🇦",SEN:"🇸🇳",NGA:"🇳🇬",CMR:"🇨🇲",
+  GHA:"🇬🇭",EGY:"🇪🇬",TUN:"🇹🇳",ALG:"🇩🇿",RSA:"🇿🇦",KSA:"🇸🇦",IRN:"🇮🇷",
+  QAT:"🇶🇦",JOR:"🇯🇴",IRQ:"🇮🇶",TUR:"🇹🇷",AUT:"🇦🇹",SCO:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",CZE:"🇨🇿",
+  BIH:"🇧🇦",SRB:"🇷🇸",UZB:"🇺🇿",CPV:"🇨🇻",HAI:"🇭🇹",PAN:"🇵🇦",CUW:"🇨🇼",
+  COD:"🇨🇩",NZL:"🇳🇿",CIV:"🇨🇮",ECU:"🇪🇨",
+};
+
+function setInitView(mode){
+  initViewMode = mode;
+  $("view-grid-btn").style.background = mode==="grid" ? "var(--gold)" : "transparent";
+  $("view-grid-btn").style.color = mode==="grid" ? "#0a0e1a" : "var(--muted)";
+  $("view-album-btn").style.background = mode==="album" ? "var(--gold)" : "transparent";
+  $("view-album-btn").style.color = mode==="album" ? "#0a0e1a" : "var(--muted)";
+
+  if(mode === "album"){
+    renderAlbumView();
+  } else {
+    // Restore grid view
+    $("init-list").innerHTML = "";
+    renderInitSections(0);
+  }
+}
+
+function renderAlbumView(){
+  const list = $("init-list");
+  list.innerHTML = "";
+
+  // Group stickers by selection
+  const selGroups = {};
+  MASTER_DB.forEach(s => {
+    if(s.ti === "especial" || s.ti === "especial_cc" || s.ab === "FWC" || s.ab === "CC") return;
+    if(!selGroups[s.ab]) selGroups[s.ab] = [];
+    selGroups[s.ab].push(s);
+  });
+
+  // Render each selection as album pages
+  Object.entries(selGroups).forEach(([ab, stickers]) => {
+    const sel = stickers[0].sel;
+    const flag = SEL_FLAGS[ab] || "🏳";
+    const page = document.createElement("div");
+    page.className = "album-page";
+
+    // Header
+    page.innerHTML = `
+      <div class="album-page-header">
+        <span class="album-page-flag">${flag}</span>
+        <span class="album-page-sel">${sel}</span>
+        <span style="margin-left:auto;font-size:10px;color:#666;font-weight:700">
+          p.${stickers[0].pg}
+        </span>
+      </div>
+      <div class="album-slots" id="album-slots-${ab}"></div>`;
+
+    list.appendChild(page);
+
+    // Sort stickers by slot number
+    stickers.sort((a,b) => a.sn - b.sn);
+    const slotsEl = document.getElementById(`album-slots-${ab}`);
+
+    stickers.forEach(s => {
+      const checked = initChecked.has(s.id);
+      const slot = document.createElement("div");
+      slot.id = "as-" + s.id;
+      slot.className = `album-slot ${checked?"checked":""} ${s.ti==="escudo"?"escudo":""} ${s.ti==="equipo"?"equipo":""}`;
+      slot.onclick = () => toggleAlbumSlot(s.id);
+
+      const code = `${ab}-${s.sn}`;
+      const name = s.ap ? (s.nm ? s.nm.substring(0,8) + " " + s.ap.substring(0,8) : s.ap.substring(0,12)) 
+                        : (s.desc || "").substring(0,14);
+      slot.innerHTML = `
+        <div class="album-slot-code">${code}</div>
+        <div class="album-slot-name">${name}</div>`;
+
+      slotsEl.appendChild(slot);
+    });
+  });
+}
+
+function toggleAlbumSlot(id){
+  if(initChecked.has(id)) initChecked.delete(id);
+  else initChecked.add(id);
+
+  // Update album slot
+  const el = document.getElementById("as-"+id);
+  if(el) el.classList.toggle("checked", initChecked.has(id));
+
+  // Update grid slot too
+  const gridEl = $("is-"+id);
+  if(gridEl) gridEl.classList.toggle("checked", initChecked.has(id));
+
+  // Update counter
+  const cc = $("init-checked-count");
+  if(cc) cc.textContent = initChecked.size + " marcadas";
+
+  // Show confirm buttons
+  const btns = $("init-confirm-btns");
+  if(btns && initChecked.size >= 1) btns.style.display = "flex";
+}
 </script>
