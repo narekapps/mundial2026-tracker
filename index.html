@@ -3577,10 +3577,27 @@ function renderAlbumView(){
 
   // ── RENDER IN ALBUM ORDER ──────────────────────────────────────────────
 
-  // 1. FWC-00 (portada - page 0)
-  renderSpecialSection("FWC", "FIFA World Cup 2026", "⭐", "#003da5");
+  // Helper: render FWC by page range
+  function renderFWCRange(fromPg, toPg, title){
+    const stickers = (byAb["FWC"]||[]).filter(s=>s.pg>=fromPg&&s.pg<=toPg).sort((a,b)=>a.sn-b.sn);
+    if(!stickers.length) return;
+    const pageGroups = {};
+    stickers.forEach(s=>{
+      if(!pageGroups[s.pg]) pageGroups[s.pg]=[];
+      pageGroups[s.pg].push(s);
+    });
+    Object.entries(pageGroups).sort((a,b)=>+a[0]-+b[0]).forEach(([pg, pgStickers])=>{
+      const grid = document.createElement("div");
+      grid.style.cssText = "display:grid;grid-template-columns:repeat(4,1fr);gap:3px";
+      pgStickers.forEach(s=> grid.appendChild(makeSlot(s)));
+      list.appendChild(makePage(["","⭐ "+title], "⭐", pg, grid));
+    });
+  }
 
-  // 2. Selecciones pp.8-105 (48 selecciones ordenadas por página)
+  // 1. FWC pp.0-3 (portada + emblema + mascotas + sedes)
+  renderFWCRange(0, 3, "FIFA World Cup 2026 — Especiales");
+
+  // 2. Selecciones pp.8-105
   const selList = Object.entries(byAb)
     .filter(([ab])=>ab!=="FWC"&&ab!=="CC")
     .map(([ab,stickers])=>({ab, pg: Math.min(...stickers.map(s=>s.pg||999)), stickers}))
@@ -3604,21 +3621,44 @@ function renderAlbumView(){
     list.appendChild(makePage(["WE ARE", sel.toUpperCase()], flag, pg, content));
   });
 
-  // 3. CC pp.112-113
+  // 3. FWC pp.106-109 (World Cup History — FIFA Museum)
+  renderFWCRange(106, 109, "World Cup History — FIFA Museum");
+
+  // 4. CC pp.112-113
   renderSpecialSection("CC", "Coca-Cola", "🥤", "#e8192c");
 }
 
 function toggleAlbumSlot(id){
   if(initChecked.has(id)) initChecked.delete(id);
   else initChecked.add(id);
+  const checked = initChecked.has(id);
 
-  // Update album slot
+  // Update album slot - re-apply inline styles
   const el = document.getElementById("as-"+id);
-  if(el) el.classList.toggle("checked", initChecked.has(id));
+  if(el){
+    // Update background and border via inline style
+    el.style.background = checked
+      ? "rgba(0,230,118,0.18)"
+      : el.getAttribute("data-escudo")==="1"
+        ? "rgba(0,61,165,0.06)" : "#fff";
+    el.style.border = checked ? "1.5px solid #00d468" : "1px solid #ccd";
+    el.style.boxShadow = checked ? "0 0 6px rgba(0,230,118,0.25)" : "";
+    // Update checkmark
+    let ck = el.querySelector(".ck");
+    if(checked && !ck){
+      ck = document.createElement("div");
+      ck.className = "ck";
+      ck.style.cssText = "font-size:9px;color:#00d468;font-weight:900;margin-top:1px";
+      ck.textContent = "✓";
+      el.appendChild(ck);
+    } else if(!checked && ck){
+      ck.remove();
+    }
+  }
 
   // Update grid slot too
   const gridEl = $("is-"+id);
-  if(gridEl) gridEl.classList.toggle("checked", initChecked.has(id));
+  if(gridEl) gridEl.classList.toggle("checked", checked);
 
   // Update counter
   const cc = $("init-checked-count");
