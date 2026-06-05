@@ -3500,54 +3500,94 @@ function renderAlbumView(){
   const list = $("init-list");
   list.innerHTML = "";
 
-  // Group stickers by selection
+  // Group stickers by selection, skip specials
   const selGroups = {};
   MASTER_DB.forEach(s => {
-    if(s.ti === "especial" || s.ti === "especial_cc" || s.ab === "FWC" || s.ab === "CC") return;
+    if(s.ti==="especial"||s.ti==="especial_cc"||s.ab==="FWC"||s.ab==="CC") return;
     if(!selGroups[s.ab]) selGroups[s.ab] = [];
     selGroups[s.ab].push(s);
   });
 
-  // Render each selection as album pages
+  // Album layout per row (slot numbers as per physical album pages):
+  // Row 1: sn 1, 2, 11, 12, 13
+  // Row 2: sn 3, 4, 5, 6, 14, 15, 16, 17
+  // Row 3: sn 7, 8, 9, 10, 18, 19, 20
+  const ROW1 = [1,2,11,12,13];
+  const ROW2 = [3,4,5,6,14,15,16,17];
+  const ROW3 = [7,8,9,10,18,19,20];
+
   Object.entries(selGroups).forEach(([ab, stickers]) => {
     const sel = stickers[0].sel;
     const flag = SEL_FLAGS[ab] || "🏳";
+    const pg = stickers[0].pg;
+    const bySlot = {};
+    stickers.forEach(s => bySlot[s.sn] = s);
+
     const page = document.createElement("div");
     page.className = "album-page";
 
-    // Header
+    // Header with "WE ARE [SEL]" style
     page.innerHTML = `
       <div class="album-page-header">
         <span class="album-page-flag">${flag}</span>
-        <span class="album-page-sel">${sel}</span>
-        <span style="margin-left:auto;font-size:10px;color:#666;font-weight:700">
-          p.${stickers[0].pg}
-        </span>
-      </div>
-      <div class="album-slots" id="album-slots-${ab}"></div>`;
+        <div>
+          <div style="font-size:9px;color:#003da5;font-weight:900;letter-spacing:1px">WE ARE</div>
+          <div class="album-page-sel">${sel.toUpperCase()}</div>
+        </div>
+        <span style="margin-left:auto;font-size:9px;color:#666;font-weight:700">p.${pg}</span>
+      </div>`;
+
+    // Render rows
+    [ROW1, ROW2, ROW3].forEach((row, ri) => {
+      const rowEl = document.createElement("div");
+      rowEl.style.cssText = `display:flex;gap:3px;margin-bottom:3px`;
+
+      row.forEach(sn => {
+        const s = bySlot[sn];
+        if(!s) return;
+        const checked = initChecked.has(s.id);
+        const slot = document.createElement("div");
+        slot.id = "as-" + s.id;
+
+        // Special styling
+        const isEscudo = s.ti === "escudo";
+        const isEquipo = s.ti === "equipo";
+
+        // Escudo (slot 1) gets 2x width
+        const w = isEscudo ? "2" : isEquipo ? "2" : "1";
+        slot.style.cssText = `
+          flex:${w};min-width:0;background:${checked?"rgba(0,230,118,0.2)":"#fff"};
+          border:${checked?"1.5px solid #00d468":"1px solid #ccd"};
+          border-radius:5px;padding:4px 2px;text-align:center;cursor:pointer;
+          transition:all 0.15s;display:flex;flex-direction:column;
+          align-items:center;justify-content:center;min-height:${ri===0?"52px":"44px"};
+          ${isEscudo?"background:linear-gradient(135deg,rgba(0,61,165,0.08),rgba(255,215,0,0.1));border-color:rgba(255,215,0,0.4)":""}
+          ${checked?"box-shadow:0 0 6px rgba(0,230,118,0.3)":""}`;
+
+        slot.onclick = () => toggleAlbumSlot(s.id);
+
+        const code = `${ab}-${sn}`;
+        const nm = s.ap || (s.desc||"").substring(0,10);
+        const firstName = s.nm ? s.nm.substring(0,7) : "";
+        const lastName = nm.substring(0,9);
+
+        slot.innerHTML = `
+          <div style="font-size:8px;font-weight:900;color:${checked?"#00d468":"#003da5"};
+            font-family:'Barlow Condensed',sans-serif;line-height:1">${code}</div>
+          ${isEscudo ? `<div style="font-size:14px">🔰</div>` : ""}
+          ${isEquipo ? `<div style="font-size:11px">📸</div>` : ""}
+          ${firstName ? `<div style="font-size:6px;color:#666;font-weight:700;line-height:1.2">${firstName}</div>` : ""}
+          <div style="font-size:7px;color:${checked?"#00a854":"#333"};font-weight:700;
+            line-height:1.2;overflow:hidden;max-width:100%">${lastName}</div>
+          ${checked ? `<div style="font-size:8px;color:#00d468;font-weight:900">✓</div>` : ""}`;
+
+        rowEl.appendChild(slot);
+      });
+
+      page.appendChild(rowEl);
+    });
 
     list.appendChild(page);
-
-    // Sort stickers by slot number
-    stickers.sort((a,b) => a.sn - b.sn);
-    const slotsEl = document.getElementById(`album-slots-${ab}`);
-
-    stickers.forEach(s => {
-      const checked = initChecked.has(s.id);
-      const slot = document.createElement("div");
-      slot.id = "as-" + s.id;
-      slot.className = `album-slot ${checked?"checked":""} ${s.ti==="escudo"?"escudo":""} ${s.ti==="equipo"?"equipo":""}`;
-      slot.onclick = () => toggleAlbumSlot(s.id);
-
-      const code = `${ab}-${s.sn}`;
-      const name = s.ap ? (s.nm ? s.nm.substring(0,8) + " " + s.ap.substring(0,8) : s.ap.substring(0,12)) 
-                        : (s.desc || "").substring(0,14);
-      slot.innerHTML = `
-        <div class="album-slot-code">${code}</div>
-        <div class="album-slot-name">${name}</div>`;
-
-      slotsEl.appendChild(slot);
-    });
   });
 }
 
