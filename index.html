@@ -1103,6 +1103,18 @@ body{background:var(--bg);color:var(--text);
 
     <!-- Scenario list -->
     <div id="help-scenarios-view">
+      <!-- Tour button at top -->
+      <div onclick="closeHelp();localStorage.setItem('mt_tour_count','0');startTour()"
+        style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,215,0,0.05));
+        border:1.5px solid rgba(255,215,0,0.3);border-radius:12px;padding:12px 14px;
+        cursor:pointer;margin-bottom:14px">
+        <span style="font-size:24px">🎯</span>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:var(--gold)">Ver tour de la app</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:1px">Recorrida completa de todas las funciones</div>
+        </div>
+        <span style="margin-left:auto;color:var(--gold);font-size:16px">→</span>
+      </div>
       <p class="help-question">¿Qué querés hacer?</p>
       <div class="help-scenarios">
         <button class="help-scenario-btn" onclick="showHelpAnswer('scan')">
@@ -2898,23 +2910,9 @@ function renderTourStep(){
 
   // Arrow pointing to target
   const arrow = $("tour-arrow");
-  // Keep arrow within screen bounds
-  const arrowX = Math.max(8, Math.min(
-    rect.left + rect.width/2 - 12, 
-    window.innerWidth - 40
-  ));
-  const inBottom = rect.top > window.innerHeight * 0.5;
-  if(inBottom){
-    arrow.style.top = Math.max(8, rect.top - 36) + "px";
-    arrow.style.left = arrowX + "px";
-    arrow.textContent = "👇";
-    arrow.style.bottom = "auto";
-  } else {
-    arrow.style.top = Math.min(rect.bottom + 8, window.innerHeight - 40) + "px";
-    arrow.style.left = arrowX + "px";
-    arrow.textContent = "👆";
-    arrow.style.bottom = "auto";
-  }
+  // Arrow hidden - highlight box is sufficient
+  const arrow = $("tour-arrow");
+  if(arrow) arrow.style.display = "none";
 
   // Bubble content
   if($("tour-ico")) $("tour-ico").textContent = step.ico || "";
