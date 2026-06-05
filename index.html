@@ -961,24 +961,24 @@ body{background:var(--bg);color:var(--text);
     <!-- Dos botones: cámara directa + galería -->
     <div id="upload-label" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;width:100%">
       <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-        gap:6px;background:linear-gradient(135deg,#003da5,#1a56d4);
+        gap:3px;background:linear-gradient(135deg,#003da5,#1a56d4);
         border:2px solid rgba(255,215,0,0.3);border-radius:var(--radius);
-        padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
+        padding:6px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
         box-shadow:0 4px 16px rgba(0,61,165,0.3)">
-        <span style="font-size:28px">📷</span>
-        <span style="font-size:13px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Cámara</span>
-        <span style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:700">Foto directa</span>
+        <span style="font-size:20px">📷</span>
+        <span style="font-size:12px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Cámara</span>
+        <span style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:700">Foto directa</span>
         <input type="file" id="file-input" accept="image/*" capture="environment"
           style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
       </label>
       <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-        gap:6px;background:linear-gradient(135deg,#1a2035,#2a3a5c);
+        gap:3px;background:linear-gradient(135deg,#1a2035,#2a3a5c);
         border:2px solid rgba(255,255,255,0.1);border-radius:var(--radius);
-        padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
+        padding:6px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
         box-shadow:0 4px 16px rgba(0,0,0,0.2)">
-        <span style="font-size:28px">🖼️</span>
-        <span style="font-size:13px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Galería</span>
-        <span style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:700">Foto guardada</span>
+        <span style="font-size:20px">🖼️</span>
+        <span style="font-size:12px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Galería</span>
+        <span style="font-size:9px;color:rgba(255,255,255,0.5);font-weight:700">Foto guardada</span>
         <input type="file" id="file-input-gallery" accept="image/*"
           style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
       </label>
@@ -1892,6 +1892,11 @@ function loadImage(file){
     $("err-box").style.display="none";
     // Pulse mode buttons until one is tapped
     setTimeout(startModeButtonPulse, 500);
+    // Auto-scroll to mode buttons
+    setTimeout(()=>{
+      const modeEl = $("mode-row");
+      if(modeEl) modeEl.scrollIntoView({behavior:"smooth", block:"center"});
+    }, 300);
   };
   img.src=url;
 }
@@ -2075,19 +2080,16 @@ Sticker types and how to identify them:
 - FWC SPECIAL sticker: official emblem, mascots (Maple/Zavu/Clutch), ball, or host countries. Return: {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
 Use null for unreadable fields.`;
 
-  // Build canvas — cap at 1024px to stay within Gemini limits and speed up transfer
-  const MAX_PX = 1024;
+  // Use full image — works better for team photos, shields and museum stickers
   const SCALE=Math.max(3,Math.round(2/imgState.scale));
   const dw=origW*imgState.scale,dh=origH*imgState.scale;
   const left=(FW-dw)/2+imgState.x,top=(FH-dh)/2+imgState.y;
-  const rawW=FW*SCALE, rawH=FH*SCALE;
-  const capScale = Math.min(1, MAX_PX/Math.max(rawW, rawH));
   const fc=document.createElement("canvas");
-  fc.width=Math.round(rawW*capScale);fc.height=Math.round(rawH*capScale);
+  fc.width=FW*SCALE;fc.height=FH*SCALE;
   const ctx=fc.getContext("2d");
   ctx.fillStyle="#000";ctx.fillRect(0,0,fc.width,fc.height);
-  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE*capScale,top*SCALE*capScale,dw*SCALE*capScale,dh*SCALE*capScale);
-  const imgB64=fc.toDataURL("image/jpeg",0.85).split(",")[1];
+  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE,top*SCALE,dw*SCALE,dh*SCALE);
+  const imgB64=fc.toDataURL("image/jpeg",0.92).split(",")[1];
 
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
     method:"POST",headers:{"Content-Type":"application/json"},
@@ -2247,6 +2249,11 @@ async function identify(){
         </div></div>`;
     });
     $("scan-results").innerHTML=html;
+    // Auto-scroll to results
+    setTimeout(()=>{
+      const res = $("scan-results");
+      if(res && res.innerHTML) res.scrollIntoView({behavior:"smooth", block:"start"});
+    }, 150);
   }catch(err){showErr(err.message);}
   finally{$("btn-identify").disabled=false;$("prog-box").style.display="none";}
 }
