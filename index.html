@@ -2658,12 +2658,12 @@ function showInitStickers(){
   $("init-stickers").style.display="block";
   initSections=buildInitSections();
   $("init-list").innerHTML="";
-  $("init-section-label").textContent=`${initSections.length} secciones — scrolleá para ver todo`;
+  $("init-section-label").textContent=`${initSections.length} secciones`;
   $("init-checked-count").textContent=initChecked.size+" marcadas";
-  // Show buttons immediately if already has stickers (modificar mode)
   const btns=$("init-confirm-btns");
   if(btns) btns.style.display = initChecked.size > 0 ? "flex" : "none";
-  renderInitSections(0);
+  // Default to album view
+  setInitView("album");
 }
 
 function renderInitSections(idx){
