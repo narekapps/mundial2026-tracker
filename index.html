@@ -3270,8 +3270,8 @@ function bootApp(){
   } catch(e) {
     console.error("bootApp error:", e.message);
   }
-  // Check for app updates in background
-  checkForUpdate();
+  // Check for app updates in background (disabled - version sync)
+  // checkForUpdate();
 }
 
 async function checkForUpdate(){
