@@ -1212,6 +1212,17 @@ body{background:var(--bg);color:var(--text);
       <div class="apikey-ok" id="apikey-ok">✅ API key guardada</div>
     </div>
 
+    <!-- TEMP: Ver demo -->
+    <div class="sec-title">🎬 Demo (provisional)</div>
+    <div class="card">
+      <button onclick="document.getElementById('demo-overlay').style.display='flex'"
+        style="width:100%;padding:12px;border-radius:10px;border:1px dashed var(--border);
+          background:transparent;color:var(--muted);font-size:13px;font-weight:900;
+          font-family:'Nunito',sans-serif;cursor:pointer">
+        🎬 Ver demo de la app
+      </button>
+    </div>
+
     <!-- 1. Comparar colección -->
     <div class="sec-title">🤝 Comparar con otro coleccionista</div>
     <div class="card">
@@ -2986,11 +2997,9 @@ function handleLicenseResponse(data, fp){
     if(data.type === "trial"){
       toast(`🆓 ${data.daysLeft} días de acceso`, 3000);
     }
-    // Extra safety: fire tour (only if album already initialized)
-    if(localStorage.getItem("mt_init")){
-      const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
-      if(htc < 4){ setTimeout(startTour, 2000); }
-    }
+    // Extra safety: fire tour
+    const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
+    if(htc < 4){ setTimeout(startTour, 2000); }
   } else {
     // Expirado o revocado
     $("license-overlay").style.display="flex";
@@ -3082,7 +3091,7 @@ const TOUR_STEPS = [
   {target:"upload-label", ico:"📸",
    title:"Subí la foto",
    text:"Usá la cámara para sacar la foto directo, o elegí una desde tu galería. Ajustá el tamaño si hace falta."},
-  {target:null, ico:"🔍",
+  {target:"mode-row", ico:"🔍",
    title:"Identificar figurita",
    text:"Elegí '1 Figurita' o 'Varias' — la IA analiza la foto automáticamente sin botón extra."},
   {target:"nav-coleccion", ico:"📖",
@@ -3097,9 +3106,6 @@ const TOUR_STEPS = [
   {target:"nav-config", ico:"⚙️",
    title:"Configuración",
    text:"Configurá tu API key, elegí tu selección favorita y comparé tu colección con otros coleccionistas."},
-  {target:"fab-intercambio", ico:"🤝",
-   title:"Comparar con otro coleccionista",
-   text:"Tocá este botón para compartir con otro coleccionista. Van a ver qué figuritas pueden intercambiar entre sí."},
   {target:"help-btn", ico:"❓",
    title:"Botón de ayuda",
    text:"Este botón siempre está disponible para volver a ver este tour en cualquier momento."},
@@ -3129,20 +3135,17 @@ function renderTourStep(){
   const step = TOUR_STEPS[tourStep];
   $("tour-overlay").classList.add("active");
 
-  const target = step.target ? $(step.target) : null;
-  if(step.target && !target){ tourNext(); return; }
+  const target = $(step.target);
+  if(!target){ tourNext(); return; }
+  const rect = target.getBoundingClientRect();
+  const pad = 6;
+
+  // Highlight target
   const hl = $("tour-highlight");
-  if(target){
-    const rect = target.getBoundingClientRect();
-    const pad = 6;
-    hl.style.left   = (rect.left - pad) + "px";
-    hl.style.top    = (rect.top - pad) + "px";
-    hl.style.width  = (rect.width + pad*2) + "px";
-    hl.style.height = (rect.height + pad*2) + "px";
-    hl.style.display = "block";
-  } else {
-    hl.style.display = "none";
-  }
+  hl.style.left   = (rect.left - pad) + "px";
+  hl.style.top    = (rect.top - pad) + "px";
+  hl.style.width  = (rect.width + pad*2) + "px";
+  hl.style.height = (rect.height + pad*2) + "px";
 
   // Arrow pointing to target
   const arrow = $("tour-arrow");
