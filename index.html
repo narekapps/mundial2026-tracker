@@ -3482,16 +3482,19 @@ const SEL_FLAGS = {
 
 function setInitView(mode){
   initViewMode = mode;
-  $("view-grid-btn").style.background = mode==="grid" ? "var(--gold)" : "transparent";
-  $("view-grid-btn").style.color = mode==="grid" ? "#0a0e1a" : "var(--muted)";
-  $("view-album-btn").style.background = mode==="album" ? "var(--gold)" : "transparent";
-  $("view-album-btn").style.color = mode==="album" ? "#0a0e1a" : "var(--muted)";
+  // Update toggle buttons if they exist
+  const gb=$("view-grid-btn"), ab=$("view-album-btn");
+  if(gb){ gb.style.background=mode==="grid"?"var(--gold)":"transparent"; gb.style.color=mode==="grid"?"#0a0e1a":"var(--muted)"; }
+  if(ab){ ab.style.background=mode==="album"?"var(--gold)":"transparent"; ab.style.color=mode==="album"?"#0a0e1a":"var(--muted)"; }
+
+  const list=$("init-list");
+  if(!list) return;
+  list.innerHTML="";
 
   if(mode === "album"){
-    renderAlbumView();
+    if(typeof renderAlbumView === "function") renderAlbumView();
+    else setTimeout(()=>{ if(typeof renderAlbumView==="function") renderAlbumView(); }, 100);
   } else {
-    // Restore grid view
-    $("init-list").innerHTML = "";
     renderInitSections(0);
   }
 }
