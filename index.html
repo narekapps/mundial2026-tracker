@@ -1735,8 +1735,8 @@ function loadImage(file){
     $("upload-label").style.display="grid";
     $("scan-results").innerHTML="";
     $("err-box").style.display="none";
-    // Hint: tell user to pick mode
-    setTimeout(showModeHint, 300);
+    // Hint: show toast after image loads
+    setTimeout(()=>toast("👆 Elegí 1 Figurita o Varias para identificar", 3000), 500);
   };
   img.src=url;
 }
@@ -1804,19 +1804,8 @@ function clearScan(){
 // ── Mode ──────────────────────────────────────────────────────────────────
 let multiMode=false;
 function showModeHint(){
-  // Pulse the mode buttons to draw attention
-  const m1 = $("mode-1");
-  const mv = $("mode-m");
-  if(!m1 || !mv) return;
-  // Add pulsing class briefly
-  m1.style.animation = "pulse 0.6s ease 2";
-  mv.style.animation = "pulse 0.6s ease 2 0.1s";
-  setTimeout(()=>{
-    if(m1) m1.style.animation="";
-    if(mv) mv.style.animation="";
-  }, 2000);
-  // Show small toast
-  toast("👆 Tocá '1 Figurita' o 'Varias' para identificar", 3000);
+  // Just show a toast - no animations that could interfere
+  toast("👆 Elegí 1 Figurita o Varias para identificar", 3000);
 }
 
 function setMode(m){
