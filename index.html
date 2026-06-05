@@ -2986,9 +2986,11 @@ function handleLicenseResponse(data, fp){
     if(data.type === "trial"){
       toast(`🆓 ${data.daysLeft} días de acceso`, 3000);
     }
-    // Extra safety: fire tour
-    const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
-    if(htc < 4){ setTimeout(startTour, 2000); }
+    // Extra safety: fire tour (only if album already initialized)
+    if(localStorage.getItem("mt_init")){
+      const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
+      if(htc < 4){ setTimeout(startTour, 2000); }
+    }
   } else {
     // Expirado o revocado
     $("license-overlay").style.display="flex";
