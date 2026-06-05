@@ -3,11 +3,11 @@ const CACHE = "mundial2026-v4";
 
 // Archivos que se cachean para uso offline
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png",
+  "/mundial2026-tracker/",
+  "/mundial2026-tracker/index.html",
+  "/mundial2026-tracker/manifest.json",
+  "/mundial2026-tracker/icon-192.png",
+  "/mundial2026-tracker/icon-512.png",
 ];
 
 // Instalación: cachear assets esenciales

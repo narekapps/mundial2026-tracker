@@ -1,8 +1,8 @@
 {
   "name": "Mundial 2026 Tracker",
   "short_name": "Mundial 2026",
-  "description": "Seguimiento del álbum de figuritas FIFA World Cup 2026",
-  "start_url": "/",
+  "description": "Seguimiento del \u00e1lbum de figuritas FIFA World Cup 2026",
+  "start_url": "/mundial2026-tracker/",
   "display": "standalone",
   "background_color": "#060d18",
   "theme_color": "#060d18",
@@ -21,6 +21,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["sports", "utilities"],
-  "lang": "es"
+  "categories": [
+    "sports",
+    "utilities"
+  ],
+  "lang": "es",
+  "scope": "/mundial2026-tracker/"
 }
