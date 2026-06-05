@@ -1212,17 +1212,6 @@ body{background:var(--bg);color:var(--text);
       <div class="apikey-ok" id="apikey-ok">✅ API key guardada</div>
     </div>
 
-    <!-- TEMP: Ver demo -->
-    <div class="sec-title">🎬 Demo (provisional)</div>
-    <div class="card">
-      <button onclick="document.getElementById('demo-overlay').style.display='flex'"
-        style="width:100%;padding:12px;border-radius:10px;border:1px dashed var(--border);
-          background:transparent;color:var(--muted);font-size:13px;font-weight:900;
-          font-family:'Nunito',sans-serif;cursor:pointer">
-        🎬 Ver demo de la app
-      </button>
-    </div>
-
     <!-- 1. Comparar colección -->
     <div class="sec-title">🤝 Comparar con otro coleccionista</div>
     <div class="card">
@@ -2086,16 +2075,19 @@ Sticker types and how to identify them:
 - FWC SPECIAL sticker: official emblem, mascots (Maple/Zavu/Clutch), ball, or host countries. Return: {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
 Use null for unreadable fields.`;
 
-  // Use full image — works better for team photos, shields and museum stickers
+  // Build canvas — cap at 1024px to stay within Gemini limits and speed up transfer
+  const MAX_PX = 1024;
   const SCALE=Math.max(3,Math.round(2/imgState.scale));
   const dw=origW*imgState.scale,dh=origH*imgState.scale;
   const left=(FW-dw)/2+imgState.x,top=(FH-dh)/2+imgState.y;
+  const rawW=FW*SCALE, rawH=FH*SCALE;
+  const capScale = Math.min(1, MAX_PX/Math.max(rawW, rawH));
   const fc=document.createElement("canvas");
-  fc.width=FW*SCALE;fc.height=FH*SCALE;
+  fc.width=Math.round(rawW*capScale);fc.height=Math.round(rawH*capScale);
   const ctx=fc.getContext("2d");
   ctx.fillStyle="#000";ctx.fillRect(0,0,fc.width,fc.height);
-  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE,top*SCALE,dw*SCALE,dh*SCALE);
-  const imgB64=fc.toDataURL("image/jpeg",0.92).split(",")[1];
+  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE*capScale,top*SCALE*capScale,dw*SCALE*capScale,dh*SCALE*capScale);
+  const imgB64=fc.toDataURL("image/jpeg",0.85).split(",")[1];
 
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
     method:"POST",headers:{"Content-Type":"application/json"},
