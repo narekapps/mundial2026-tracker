@@ -700,14 +700,11 @@ body{background:var(--bg);color:var(--text);
   align-items:center;justify-content:center;min-height:100vh">
   <div style="width:100%;max-width:380px">
     <div style="text-align:center;margin-bottom:28px">
-      <div style="margin-bottom:14px"><img src="/mundial2026-tracker/icon-192.png" style="width:90px;height:90px;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
-      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
-        color:#fff;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">
-        ¡Bienvenido!
-      </h2>
-      <p style="font-size:13px;color:var(--muted);line-height:1.6">
-        Contanos un poco sobre vos para personalizar tu experiencia.
-      </p>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;line-height:1">MUNDIAL <span style="color:#ffd700">2026</span><br>TRACKER</div>
+      <p style="font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;color:#ffd700;margin-bottom:16px;letter-spacing:0.5px">Tu álbum, siempre con vos</p>
+      <div style="margin-bottom:16px"><img src="/mundial2026-tracker/icon-192.png" style="width:180px;height:180px;border-radius:32px;box-shadow:0 6px 28px rgba(0,0,0,0.5)"></div>
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:#fff;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;line-height:1.1">¡Bienvenido!</h2>
+      <p id="reg-desc-text" style="font-size:12px;color:var(--muted);line-height:1.6">Contanos un poco sobre vos para personalizar tu experiencia.</p>
     </div>
 
     <!-- Nombre usuario -->
@@ -3470,6 +3467,9 @@ function afterLicense(){
     if(fav) document.getElementById("reg-favsel").value = fav;
     document.getElementById("reg-btn").style.display = "none";
     document.getElementById("reg-continuar-btn").style.display = "block";
+    // Hide "Contanos..." text for returning users
+    const desc = document.getElementById("reg-desc-text");
+    if(desc) desc.style.display = "none";
   }
   document.getElementById("reg-overlay").style.display = "flex";
 }
