@@ -2237,7 +2237,7 @@ Null for unreadable fields.`;
     res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
-        generationConfig:{temperature:0,maxOutputTokens:400}})
+        generationConfig:{temperature:0,maxOutputTokens:1000}})
     });
     if(res.status !== 429) break;
     const errData = await res.clone().json().catch(()=>({}));
@@ -3379,8 +3379,6 @@ async function startCamera(){
     try {
       const track = stream.getVideoTracks()[0];
       const caps = track.getCapabilities();
-      if(caps.zoom && caps.zoom.max >= 1.5)
-        await track.applyConstraints({advanced:[{zoom:1.5}]});
       // Only show torch button if device supports it
       const tb=$("torch-btn");
       if(tb) tb.style.display = caps.torch ? "block" : "none";
@@ -3391,25 +3389,32 @@ async function startCamera(){
   }
 }
 
-function captureFromCamera(){
+async function captureFromCamera(){
   if(!cameraStream) return;
   const video = $("camera-stream");
   if(!video || video.readyState < 2) return;
+  // Attempt single-shot focus before capture
+  try{
+    const track = cameraStream.getVideoTracks()[0];
+    const caps = track.getCapabilities();
+    if(caps.focusMode && caps.focusMode.includes("single-shot"))
+      await track.applyConstraints({advanced:[{focusMode:"single-shot"}]});
+  }catch(e){}
   const flash = $("camera-flash");
   flash.style.opacity = "0.85";
   setTimeout(()=>{ flash.style.opacity = "0"; }, 130);
   setTimeout(()=>{
     const cap = document.createElement("canvas");
     const vw=video.videoWidth, vh=video.videoHeight;
-    const MAX=1200, scale=Math.min(1,MAX/Math.max(vw,vh));
+    const MAX=800, scale=Math.min(1,MAX/Math.max(vw,vh));
     cap.width=Math.round(vw*scale); cap.height=Math.round(vh*scale);
     cap.getContext("2d").drawImage(video,0,0,cap.width,cap.height);
     cap.toBlob(blob=>{
       stopCamera();
       const file=new File([blob],"capture.jpg",{type:"image/jpeg"});
       loadImage(file);
-    },"image/jpeg",0.87);
-  }, 80);
+    },"image/jpeg",0.85);
+  }, 150);
 }
 
 function toggleTorch(e){
