@@ -1047,7 +1047,7 @@ body{background:var(--bg);color:var(--text);
         id="mode-label">⬇️ ¿Cuántas figuritas hay en la foto?</div>
       <div class="mode-row">
         <div class="mode-btn" id="mode-1" onclick="setModeAndIdentify(false)">📷 1 Figurita</div>
-        <div class="mode-btn" id="mode-m" onclick="setModeAndIdentify(true)">📚 Varias <span style="font-size:9px;opacity:0.7">(máx. 5)</span></div>
+        <div class="mode-btn" id="mode-m" onclick="setModeAndIdentify(true)">📚 Varias <span style="font-size:9px;opacity:0.7">(máx. 4)</span></div>
       </div>
     </div>
 
@@ -2155,7 +2155,7 @@ function setModeAndIdentify(m){
   stopModeButtonPulse(); // Stop pulsing when user taps
   setMode(m);
   if(m){
-    toast("📚 Modo Varias — máximo 5 figuritas por foto", 2500);
+    toast("📚 Modo Varias — máximo 4 figuritas por foto", 2500);
     setTimeout(identify, 400);
   } else {
     identify();
@@ -2218,7 +2218,7 @@ Types:
 Null for unreadable fields.`;
 
   // Cap canvas at 800px for faster Gemini transfer
-  const MAX_PX=800;
+  const MAX_PX=multi?1200:600;
   const SCALE=Math.max(3,Math.round(2/imgState.scale));
   const dw=origW*imgState.scale,dh=origH*imgState.scale;
   const left=(FW-dw)/2+imgState.x,top=(FH-dh)/2+imgState.y;
