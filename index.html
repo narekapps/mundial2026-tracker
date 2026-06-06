@@ -949,7 +949,7 @@ body{background:var(--bg);color:var(--text);
 <!-- Top bar -->
 <div class="topbar">
   <div class="topbar-logo">
-    <button onclick="openSidebar()" style="background:none;border:none;cursor:pointer;
+    <button id="sidebar-btn" onclick="openSidebar()" style="background:none;border:none;cursor:pointer;
       padding:4px 8px 4px 0;font-size:20px;color:var(--text);line-height:1">☰</button>
     <div>
       <h1>MUNDIAL<span>2026</span></h1>
@@ -1446,6 +1446,15 @@ body{background:var(--bg);color:var(--text);
       <div class="si-txt"><div class="ttl">Ver demo de la app</div><div class="sub">Cómo funciona todo</div></div>
     </button>
     <div class="sidebar-divider"></div>
+    <button class="sidebar-item" onclick="closeSidebar();openCalificar()">
+      <div class="si-ico">⭐</div>
+      <div class="si-txt"><div class="ttl">Calificar la app</div><div class="sub">Contanos tu experiencia</div></div>
+    </button>
+    <button class="sidebar-item" onclick="closeSidebar();openReportar()">
+      <div class="si-ico">🐛</div>
+      <div class="si-txt"><div class="ttl">Reportar problema</div><div class="sub">Ayudanos a mejorar</div></div>
+    </button>
+    <div class="sidebar-divider"></div>
     <button class="sidebar-item" onclick="closeSidebar();openHelp()">
       <div class="si-ico">❓</div>
       <div class="si-txt"><div class="ttl">Centro de Ayuda</div><div class="sub">¿Cómo hago para...?</div></div>
@@ -1572,6 +1581,80 @@ body{background:var(--bg);color:var(--text);
   <div class="demo-nav">
     <button class="demo-btn skip" onclick="endDemo()">Saltar</button>
     <button class="demo-btn next" id="demo-next-btn" onclick="demoNext()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- Modal Calificar App -->
+<div id="modal-calificar" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);z-index:500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;
+    padding:22px;width:100%;max-width:360px">
+    <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;
+      color:#fff;margin:0 0 4px;text-transform:uppercase">⭐ Calificar la app</h3>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 16px">Tu opinión nos ayuda a mejorar</p>
+
+    <!-- Estrellas -->
+    <div id="star-row" style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
+      <span class="star-btn" data-v="1" onclick="setStar(1)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+      <span class="star-btn" data-v="2" onclick="setStar(2)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+      <span class="star-btn" data-v="3" onclick="setStar(3)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+      <span class="star-btn" data-v="4" onclick="setStar(4)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+      <span class="star-btn" data-v="5" onclick="setStar(5)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+    </div>
+
+    <!-- Comentario -->
+    <textarea id="cal-comentario" placeholder="Comentario opcional (máx. 3 líneas)..."
+      maxlength="300" rows="3"
+      style="width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:8px;
+        padding:10px 12px;color:#fff;font-size:13px;font-family:'Nunito',sans-serif;
+        resize:none;box-sizing:border-box;outline:none;margin-bottom:14px"></textarea>
+
+    <div id="cal-msg" style="display:none;font-size:12px;font-weight:700;text-align:center;margin-bottom:10px"></div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closeCalificar()"
+        style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);
+          background:transparent;color:var(--muted);font-size:13px;font-weight:900;
+          font-family:'Nunito',sans-serif;cursor:pointer">Cancelar</button>
+      <button onclick="enviarCalificacion()" id="btn-enviar-cal"
+        style="flex:2;padding:11px;border-radius:8px;border:none;
+          background:linear-gradient(135deg,#003da5,#1a56d4);color:#fff;
+          font-size:13px;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer">
+        Enviar ⭐
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Reportar Problema -->
+<div id="modal-reportar" style="display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);z-index:500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--s1);border:1px solid var(--border);border-radius:16px;
+    padding:22px;width:100%;max-width:360px">
+    <h3 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;
+      color:#fff;margin:0 0 4px;text-transform:uppercase">🐛 Reportar problema</h3>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 16px">Describí el problema con el mayor detalle posible</p>
+
+    <textarea id="rep-problema" placeholder="¿Qué pasó? ¿En qué pantalla? ¿Qué estabas haciendo?..."
+      maxlength="500" rows="4"
+      style="width:100%;background:var(--s2);border:1.5px solid var(--border);border-radius:8px;
+        padding:10px 12px;color:#fff;font-size:13px;font-family:'Nunito',sans-serif;
+        resize:none;box-sizing:border-box;outline:none;margin-bottom:14px"></textarea>
+
+    <div id="rep-msg" style="display:none;font-size:12px;font-weight:700;text-align:center;margin-bottom:10px"></div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="closeReportar()"
+        style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border);
+          background:transparent;color:var(--muted);font-size:13px;font-weight:900;
+          font-family:'Nunito',sans-serif;cursor:pointer">Cancelar</button>
+      <button onclick="enviarReporte()" id="btn-enviar-rep"
+        style="flex:2;padding:11px;border-radius:8px;border:none;
+          background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;
+          font-size:13px;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer">
+        Enviar reporte 🐛
+      </button>
+    </div>
   </div>
 </div>
 
@@ -3185,6 +3268,9 @@ const TOUR_STEPS = [
   {target:"help-btn", ico:"❓",
    title:"Botón de ayuda",
    text:"Este botón siempre está disponible para volver a ver este tour en cualquier momento."},
+  {target:"sidebar-btn", ico:"☰",
+   title:"¡Ya conocés todo!",
+   text:"Encontrás las opciones para calificar la app y reportar problemas en el menú ☰. Tu opinión nos ayuda a mejorar."},
 ];
 
 let tourStep = 0;
@@ -3334,6 +3420,99 @@ function stopCamera(){
   torchEnabled=false;
   $("viewfinder").onclick=function(){ if(cameraStream) captureFromCamera(); else if(!origW) startCamera(); };
   $("viewfinder").style.cursor="pointer";
+}
+
+// ── Calificar App & Reportar Problema ────────────────────────────────────
+const FS_CALIFICAR = "https://formspree.io/f/mrevejrr";
+const FS_REPORTAR  = "https://formspree.io/f/mbdedwww";
+let starValue = 0;
+
+function openCalificar(){
+  starValue = 0;
+  document.querySelectorAll(".star-btn").forEach(s=>s.style.opacity="0.3");
+  $("cal-comentario").value="";
+  $("cal-msg").style.display="none";
+  $("btn-enviar-cal").disabled=false;
+  $("modal-calificar").style.display="flex";
+}
+function closeCalificar(){ $("modal-calificar").style.display="none"; }
+
+function setStar(v){
+  starValue=v;
+  document.querySelectorAll(".star-btn").forEach(s=>{
+    s.style.opacity = parseInt(s.dataset.v) <= v ? "1" : "0.3";
+  });
+}
+
+async function enviarCalificacion(){
+  if(!starValue){ toast("⭐ Elegí una puntuación",2000); return; }
+  const btn=$("btn-enviar-cal");
+  btn.disabled=true; btn.textContent="Enviando...";
+  const data={
+    puntuacion: starValue + " estrellas",
+    comentario: $("cal-comentario").value || "(sin comentario)",
+    usuario: localStorage.getItem("mt_user_name")||"Anónimo",
+    album: localStorage.getItem("mt_album_name")||"—",
+    version: APP_VERSION,
+    dispositivo: navigator.userAgent.substring(0,80)
+  };
+  try{
+    const res = await fetch(FS_CALIFICAR,{
+      method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(data)
+    });
+    if(res.ok){
+      const msg=$("cal-msg");
+      msg.style.display="block"; msg.style.color="var(--green)";
+      msg.textContent="✅ ¡Gracias por tu calificación!";
+      setTimeout(closeCalificar, 2000);
+    } else { throw new Error("Error al enviar"); }
+  }catch(e){
+    const msg=$("cal-msg");
+    msg.style.display="block"; msg.style.color="var(--red)";
+    msg.textContent="⚠️ Error al enviar. Intentá de nuevo.";
+    btn.disabled=false; btn.textContent="Enviar ⭐";
+  }
+}
+
+function openReportar(){
+  $("rep-problema").value="";
+  $("rep-msg").style.display="none";
+  $("btn-enviar-rep").disabled=false;
+  $("modal-reportar").style.display="flex";
+}
+function closeReportar(){ $("modal-reportar").style.display="none"; }
+
+async function enviarReporte(){
+  const problema = $("rep-problema").value.trim();
+  if(!problema){ toast("🐛 Describí el problema primero",2000); return; }
+  const btn=$("btn-enviar-rep");
+  btn.disabled=true; btn.textContent="Enviando...";
+  const data={
+    problema,
+    usuario: localStorage.getItem("mt_user_name")||"Anónimo",
+    album: localStorage.getItem("mt_album_name")||"—",
+    version: APP_VERSION,
+    dispositivo: navigator.userAgent.substring(0,80),
+    pagina: document.querySelector(".page.active")?.id || "desconocida"
+  };
+  try{
+    const res = await fetch(FS_REPORTAR,{
+      method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify(data)
+    });
+    if(res.ok){
+      const msg=$("rep-msg");
+      msg.style.display="block"; msg.style.color="var(--green)";
+      msg.textContent="✅ Reporte enviado. ¡Gracias!";
+      setTimeout(closeReportar, 2000);
+    } else { throw new Error(); }
+  }catch(e){
+    const msg=$("rep-msg");
+    msg.style.display="block"; msg.style.color="var(--red)";
+    msg.textContent="⚠️ Error al enviar. Intentá de nuevo.";
+    btn.disabled=false; btn.textContent="Enviar reporte 🐛";
+  }
 }
 
 // ── After license: show registration if needed, then bootApp ─────────────
