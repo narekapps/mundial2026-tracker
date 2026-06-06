@@ -2239,28 +2239,29 @@ Null for unreadable fields.`;
       body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
         generationConfig:{temperature:0,maxOutputTokens:1000}})
     });
-    if(res.status !== 429) break;
-    const errData = await res.clone().json().catch(()=>({}));
-    const retryAfter = errData?.error?.details?.find(d=>d.retryDelay)?.retryDelay || "10s";
-    const secs = parseInt(retryAfter) || 10;
+    if(res.status !== 429 && res.status !== 503) break;
     retryCount++;
     if(retryCount > 2){ break; }
-    setProg(20, `⏳ Límite alcanzado, reintentando en ${secs}s...`);
-    await new Promise(r => setTimeout(r, secs * 1000));
+    setProg(20, "⚠️ Upssss!! Los servidores de Google siguen sin responder. Por favor intentá de nuevo en unos segundos.");
+    await new Promise(r => setTimeout(r, 20000));
     setProg(30, "Enviando a Gemini Vision...");
   }
   if(!res.ok){
     const err=await res.json();
     const msg=err.error?.message||"";
-    if(res.status===429||msg.includes("quota")){
-      const sec=msg.match(/retry in ([\d.]+)s/i);
-      throw new Error(`Límite de llamadas. Esperá ${sec?Math.ceil(parseFloat(sec[1])):60}s e intentá de nuevo.`);
+    if(res.status===429||res.status===503||msg.includes("quota")||msg.includes("high demand")){
+      throw new Error("Algo no salió bien! Por favor vuelve a tomar la foto.");
     }
     throw new Error(msg||`Error ${res.status}`);
   }
   const data=await res.json();
   const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||"";
   let clean=raw.trim().replace(/```json|```/g,"").trim();
+  // For multi mode, try to wrap multiple objects in array if needed
+  if(multi && !clean.startsWith("[") && clean.includes("}") && clean.includes("{")){
+    const objs = clean.match(/\{[^{}]*\}/g);
+    if(objs && objs.length > 1) clean = "[" + objs.join(",") + "]";
+  }
   const am=clean.match(/\[[\s\S]*\]/),om=clean.match(/\{[\s\S]*\}/);
   const js=am||om;
   if(!js){
@@ -2429,7 +2430,18 @@ async function identify(){
   finally{$("btn-identify").disabled=false;$("prog-box").style.display="none";}
 }
 
-function showErr(msg){$("err-box").textContent="⚠️ "+msg;$("err-box").style.display="block";}
+function showErr(msg){
+  const box=$("err-box");
+  box.innerHTML=`<div style="font-size:15px;font-weight:900;margin-bottom:4px">⚠️ Error</div>`
+    +`<div style="font-size:13px;line-height:1.5">${msg}</div>`;
+  box.style.display="block";
+  box.style.padding="14px";
+  box.style.borderRadius="12px";
+  box.style.border="2px solid #e8192c";
+  box.style.background="rgba(232,25,44,0.12)";
+  // Scroll to error
+  setTimeout(()=>box.scrollIntoView({behavior:"smooth",block:"center"}),100);
+}
 
 // ── Completion alert ──────────────────────────────────────────────────────
 function checkCompletionAlert(ab){
