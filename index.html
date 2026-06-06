@@ -994,7 +994,7 @@ body{background:var(--bg);color:var(--text);
     </div>
 
     <div class="vf-wrap" id="vf-wrap">
-      <div class="viewfinder" id="viewfinder" onclick="if(!origW) startCamera()" style="cursor:pointer">
+      <div class="viewfinder" id="viewfinder" onclick="if(cameraStream) captureFromCamera(); else if(!origW) startCamera();" style="cursor:pointer">
         <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
         <div class="vf-corner bl"></div><div class="vf-corner br"></div>
         <div class="vf-prompt" id="vf-prompt">
@@ -2007,15 +2007,22 @@ function startModeButtonPulse(){
     const m1=$("mode-1"), mv=$("mode-m"), lbl=$("mode-label");
     if(!m1||!mv){stopModeButtonPulse();return;}
     visible=!visible;
-    const glow = visible ? "0 0 14px rgba(255,215,0,0.7)" : "none";
+    const glow = visible
+      ? "0 0 22px rgba(255,215,0,0.95), 0 0 6px rgba(255,215,0,0.6)"
+      : "none";
+    const bg = visible
+      ? "linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,215,0,0.08))"
+      : "";
     m1.style.borderColor = visible ? "var(--gold)" : "";
     m1.style.boxShadow = glow;
-    m1.style.transform = visible ? "scale(1.03)" : "";
+    m1.style.transform = visible ? "scale(1.06)" : "scale(1)";
+    m1.style.background = bg;
     mv.style.borderColor = visible ? "var(--gold)" : "";
     mv.style.boxShadow = glow;
-    mv.style.transform = visible ? "scale(1.03)" : "";
-    if(lbl) lbl.style.opacity = visible ? "1" : "0.4";
-  }, 700);
+    mv.style.transform = visible ? "scale(1.06)" : "scale(1)";
+    mv.style.background = bg;
+    if(lbl) lbl.style.opacity = visible ? "1" : "0.3";
+  }, 450);
 }
 
 function stopModeButtonPulse(){
@@ -3237,25 +3244,36 @@ function captureFromCamera(){
   const video = $("camera-stream");
   if(!video || video.readyState < 2) return;
 
-  // Flash effect
+  const track = cameraStream.getVideoTracks()[0];
+  const tryTorch = async (on) => {
+    try {
+      if(track){ const caps = track.getCapabilities();
+        if(caps.torch) await track.applyConstraints({advanced:[{torch:on}]}); }
+    } catch(e){}
+  };
+
+  // Visual flash
   const flash = $("camera-flash");
-  flash.style.opacity = "0.8";
-  setTimeout(()=>{ flash.style.opacity = "0"; }, 120);
+  flash.style.opacity = "0.85";
+  setTimeout(()=>{ flash.style.opacity = "0"; }, 130);
 
-  // Capture frame to canvas → blob → File → loadImage
-  const cap = document.createElement("canvas");
-  const vw = video.videoWidth, vh = video.videoHeight;
-  const MAX = 1200;
-  const scale = Math.min(1, MAX / Math.max(vw, vh));
-  cap.width = Math.round(vw * scale);
-  cap.height = Math.round(vh * scale);
-  cap.getContext("2d").drawImage(video, 0, 0, cap.width, cap.height);
-
-  cap.toBlob(blob => {
-    stopCamera();
-    const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
-    loadImage(file);
-  }, "image/jpeg", 0.87);
+  // Torch on → capture → torch off
+  tryTorch(true);
+  setTimeout(async ()=>{
+    const cap = document.createElement("canvas");
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const MAX = 1200;
+    const scale = Math.min(1, MAX / Math.max(vw, vh));
+    cap.width = Math.round(vw * scale);
+    cap.height = Math.round(vh * scale);
+    cap.getContext("2d").drawImage(video, 0, 0, cap.width, cap.height);
+    await tryTorch(false);
+    cap.toBlob(blob => {
+      stopCamera();
+      const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
+      loadImage(file);
+    }, "image/jpeg", 0.87);
+  }, 80);
 }
 
 function stopCamera(){
