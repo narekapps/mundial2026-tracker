@@ -3244,6 +3244,9 @@ async function startCamera(){
       const caps = track.getCapabilities();
       if(caps.zoom && caps.zoom.max >= 1.5)
         await track.applyConstraints({advanced:[{zoom:1.5}]});
+      // Only show torch button if device supports it
+      const tb=$("torch-btn");
+      if(tb) tb.style.display = caps.torch ? "block" : "none";
     } catch(e){}
   } catch(err){
     console.warn("getUserMedia failed:", err.message);
