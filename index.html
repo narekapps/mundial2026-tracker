@@ -700,7 +700,7 @@ body{background:var(--bg);color:var(--text);
   align-items:center;justify-content:center;min-height:100vh">
   <div style="width:100%;max-width:380px">
     <div style="text-align:center;margin-bottom:28px">
-      <div style="font-size:48px;margin-bottom:10px">⚽</div>
+      <div style="margin-bottom:14px"><img src="/mundial2026-tracker/icon-192.png" style="width:90px;height:90px;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
       <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;
         color:#fff;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">
         ¡Bienvenido!
@@ -764,6 +764,13 @@ body{background:var(--bg);color:var(--text);
         cursor:pointer;opacity:0.4;transition:opacity 0.2s;
         -webkit-tap-highlight-color:transparent">
       ¡Empezar! 🚀
+    </button>
+    <button id="reg-continuar-btn" onclick="gamaContinar()" style="display:none;
+      width:100%;padding:14px;border-radius:12px;border:none;margin-top:10px;
+      background:linear-gradient(135deg,#003da5,#1a56d4);
+      color:#fff;font-size:16px;font-weight:900;font-family:'Nunito',sans-serif;
+      cursor:pointer;-webkit-tap-highlight-color:transparent">
+      Continuar 👋
     </button>
   </div>
 </div>
@@ -3451,12 +3458,20 @@ async function enviarReporte(){
 
 // ── After license: show registration if needed, then bootApp ─────────────
 function afterLicense(){
-  if(!localStorage.getItem("mt_user_name")){
-    initRegOverlay();
-    document.getElementById("reg-overlay").style.display = "flex";
-  } else {
-    bootApp();
+  // Versión Gama: siempre muestra la pantalla de bienvenida
+  initRegOverlay();
+  const name = localStorage.getItem("mt_user_name");
+  const album = localStorage.getItem("mt_album_name");
+  if(name && album){
+    // Usuario existente: prellenar datos y mostrar botón Continuar
+    document.getElementById("reg-username").value = name;
+    document.getElementById("reg-albumname").value = album;
+    const fav = localStorage.getItem("mt_fav");
+    if(fav) document.getElementById("reg-favsel").value = fav;
+    document.getElementById("reg-btn").style.display = "none";
+    document.getElementById("reg-continuar-btn").style.display = "block";
   }
+  document.getElementById("reg-overlay").style.display = "flex";
 }
 
 // ── User Registration ─────────────────────────────────────────────────────
@@ -3484,6 +3499,13 @@ function regCheckReady(){
   const ready = name.length>0 && album.length>0 && fav.length>0;
   btn.disabled = !ready;
   btn.style.opacity = ready ? "1" : "0.4";
+}
+
+function gamaContinar(){
+  // Usuario existente — cerrar bienvenida y continuar
+  document.getElementById("reg-overlay").style.display = "none";
+  updateUserGreeting();
+  bootApp();
 }
 
 function saveRegistration(){
