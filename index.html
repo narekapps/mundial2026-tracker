@@ -1905,6 +1905,11 @@ function loadImage(file){
     $("err-box").style.display="none";
     // Pulse mode buttons until one is tapped
     setTimeout(startModeButtonPulse, 500);
+    // Auto-scroll to mode buttons
+    setTimeout(()=>{
+      const modeEl = $("mode-row");
+      if(modeEl) modeEl.scrollIntoView({behavior:"smooth", block:"center"});
+    }, 300);
   };
   img.src=url;
 }
@@ -2258,6 +2263,11 @@ async function identify(){
         </div></div>`;
     });
     $("scan-results").innerHTML=html;
+    // Auto-scroll to results
+    setTimeout(()=>{
+      const res = $("scan-results");
+      if(res && res.innerHTML) res.scrollIntoView({behavior:"smooth", block:"start"});
+    }, 150);
   }catch(err){showErr(err.message);}
   finally{$("btn-identify").disabled=false;$("prog-box").style.display="none";}
 }
