@@ -3461,14 +3461,22 @@ function afterLicense(){
   const name = localStorage.getItem("mt_user_name");
   const album = localStorage.getItem("mt_album_name");
   if(name && album){
-    // Usuario existente: prellenar datos y mostrar botón Continuar
-    document.getElementById("reg-username").value = name;
-    document.getElementById("reg-albumname").value = album;
+    // Usuario existente: mostrar datos bloqueados y botón Continuar
+    const uInput = document.getElementById("reg-username");
+    const aInput = document.getElementById("reg-albumname");
+    const fSel = document.getElementById("reg-favsel");
+    uInput.value = name;
+    uInput.readOnly = true;
+    uInput.style.opacity = "0.6";
+    uInput.style.cursor = "default";
+    aInput.value = album;
+    aInput.readOnly = true;
+    aInput.style.opacity = "0.6";
+    aInput.style.cursor = "default";
     const fav = localStorage.getItem("mt_fav");
-    if(fav) document.getElementById("reg-favsel").value = fav;
+    if(fav && fSel){ fSel.value = fav; fSel.disabled = true; fSel.style.opacity = "0.6"; }
     document.getElementById("reg-btn").style.display = "none";
     document.getElementById("reg-continuar-btn").style.display = "block";
-    // Hide "Contanos..." text for returning users
     const desc = document.getElementById("reg-desc-text");
     if(desc) desc.style.display = "none";
   }
