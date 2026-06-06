@@ -1,5 +1,5 @@
 // Mundial 2026 Tracker — Service Worker
-const CACHE = "mundial2026-v5";
+const CACHE = "mundial2026-v6";
 
 // Archivos que se cachean para uso offline
 const ASSETS = [
