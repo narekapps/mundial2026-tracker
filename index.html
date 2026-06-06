@@ -1003,6 +1003,11 @@ body{background:var(--bg);color:var(--text);
         </div>
         <video id="camera-stream" autoplay playsinline style="display:none"></video>
         <div id="camera-capture-hint" style="display:none">📷 Tocá para capturar</div>
+        <button id="torch-btn" onclick="toggleTorch(event)"
+          style="display:none;position:absolute;top:8px;right:8px;z-index:7;
+          background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.3);
+          border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;
+          color:#fff;line-height:1;-webkit-tap-highlight-color:transparent">⚡</button>
         <div id="camera-flash"></div>
         <img id="sticker-img" alt="" draggable="false">
       </div>
@@ -3202,6 +3207,7 @@ function endTour(){
 
 // ── getUserMedia Camera ───────────────────────────────────────────────────
 let cameraStream = null;
+let torchEnabled = false;
 
 async function startCamera(){
   // If already streaming, capture instead
@@ -3220,6 +3226,7 @@ async function startCamera(){
     video.srcObject = stream;
     video.style.display = "block";
     $("camera-capture-hint").style.display = "block";
+    $("torch-btn").style.display = "block";
     $("vf-prompt").classList.add("hidden");
     // Tap viewfinder to capture
     $("viewfinder").onclick = captureFromCamera;
@@ -3244,21 +3251,11 @@ function captureFromCamera(){
   const video = $("camera-stream");
   if(!video || video.readyState < 2) return;
 
-  const track = cameraStream.getVideoTracks()[0];
-  const tryTorch = async (on) => {
-    try {
-      if(track){ const caps = track.getCapabilities();
-        if(caps.torch) await track.applyConstraints({advanced:[{torch:on}]}); }
-    } catch(e){}
-  };
-
   // Visual flash
   const flash = $("camera-flash");
   flash.style.opacity = "0.85";
   setTimeout(()=>{ flash.style.opacity = "0"; }, 130);
 
-  // Torch on → capture → torch off
-  tryTorch(true);
   setTimeout(async ()=>{
     const cap = document.createElement("canvas");
     const vw = video.videoWidth, vh = video.videoHeight;
@@ -3267,13 +3264,27 @@ function captureFromCamera(){
     cap.width = Math.round(vw * scale);
     cap.height = Math.round(vh * scale);
     cap.getContext("2d").drawImage(video, 0, 0, cap.width, cap.height);
-    await tryTorch(false);
     cap.toBlob(blob => {
       stopCamera();
       const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
       loadImage(file);
     }, "image/jpeg", 0.87);
   }, 80);
+}
+
+function toggleTorch(e){
+  e.stopPropagation();
+  if(!cameraStream) return;
+  torchEnabled = !torchEnabled;
+  const btn = $("torch-btn");
+  btn.style.background = torchEnabled ? "rgba(255,215,0,0.8)" : "rgba(0,0,0,0.5)";
+  btn.style.color = torchEnabled ? "#000" : "#fff";
+  try {
+    const track = cameraStream.getVideoTracks()[0];
+    const caps = track.getCapabilities();
+    if(caps.torch) track.applyConstraints({advanced:[{torch:torchEnabled}]});
+    else { torchEnabled=false; toast("⚡ Flash no disponible en este dispositivo",2000); }
+  } catch(e){ torchEnabled=false; }
 }
 
 function stopCamera(){
@@ -3284,8 +3295,10 @@ function stopCamera(){
   const video = $("camera-stream");
   if(video){ video.style.display = "none"; video.srcObject = null; }
   $("camera-capture-hint").style.display = "none";
-  // Restore default viewfinder click
-  $("viewfinder").onclick = null;
+  const tb = $("torch-btn"); if(tb) tb.style.display = "none";
+  torchEnabled = false;
+  // Restore viewfinder click to startCamera
+  $("viewfinder").onclick = function(){ if(cameraStream) captureFromCamera(); else if(!origW) startCamera(); };
   $("viewfinder").style.cursor = "pointer";
 }
 
