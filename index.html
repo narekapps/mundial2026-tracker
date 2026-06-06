@@ -1021,7 +1021,7 @@ body{background:var(--bg);color:var(--text);
         <img id="sticker-img" alt="" draggable="false">
       </div>
       <div class="vf-controls" id="vf-controls">
-        <div style="display:flex;align-items:center;gap:4px;justify-content:center">
+        <div style="display:flex;align-items:center;gap:4px;justify-content:center;width:100%;overflow:hidden;flex-wrap:nowrap">
           <span class="ctrl-lbl">Tam</span>
           <button class="ctrl-btn" id="btn-sm">−</button>
           <span class="ctrl-val" id="scale-val" style="min-width:28px;font-size:10px">100%</span>
@@ -2237,7 +2237,7 @@ Null for unreadable fields.`;
     res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
-        generationConfig:{temperature:0,maxOutputTokens:1000}})
+        generationConfig:{temperature:0,maxOutputTokens:multi?2000:1000}})
     });
     if(res.status !== 429 && res.status !== 503) break;
     retryCount++;
