@@ -775,6 +775,14 @@ body{background:var(--bg);color:var(--text);
       text-align:center;margin-top:8px;padding:8px;background:rgba(255,82,82,0.08);
       border-radius:8px"></div>
 
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="" disabled
+        style="background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:11px;
+        font-family:'Nunito',sans-serif;font-weight:700;cursor:default">
+        ¿No tenés código? <span style="color:var(--gold);opacity:0.6">Solicitar licencia</span>
+      </button>
+    </div>
+
     <p style="text-align:center;font-size:10px;color:#1e3a5f;margin-top:20px">
       Mundial 2026 Tracker
     </p>
@@ -1246,10 +1254,10 @@ body{background:var(--bg);color:var(--text);
     <div class="sec-title">📁 Colección</div>
     <button class="export-btn" onclick="exportJSON('todo')">⬇️ Exportar colección completa</button>
     <button class="export-btn" style="margin-top:6px;color:var(--green);border-color:var(--green-bd)"
-      onclick="backupColeccion()">💾 Backup completo (colección + config)</button>
+      onclick="backupColeccion()">📤 Exportar Álbum</button>
     <label class="export-btn" style="margin-top:6px;color:var(--blue);border-color:rgba(77,159,255,0.3);
       display:block;text-align:center;cursor:pointer">
-      📥 Restaurar desde backup
+      📥 Importar Álbum
       <input type="file" accept=".json" style="display:none" onchange="restoreBackup(this)">
     </label>
     <button class="export-btn" style="margin-top:6px;color:var(--amber);border-color:var(--amber-bd)"
@@ -2632,6 +2640,8 @@ function backupColeccion(){
       favSel: localStorage.getItem("mt_fav")||"ARG",
       mt_init: localStorage.getItem("mt_init"),
       mt_tour_count: localStorage.getItem("mt_tour_count"),
+      mt_user_name: localStorage.getItem("mt_user_name"),
+      mt_album_name: localStorage.getItem("mt_album_name"),
     }
   };
   const fecha = new Date().toISOString().split("T")[0];
@@ -2661,6 +2671,9 @@ function restoreBackup(input){
       if(data.config){
         if(data.config.favSel) localStorage.setItem("mt_fav", data.config.favSel);
         if(data.config.mt_init) localStorage.setItem("mt_init", data.config.mt_init);
+        if(data.config.mt_user_name) localStorage.setItem("mt_user_name", data.config.mt_user_name);
+        if(data.config.mt_album_name) localStorage.setItem("mt_album_name", data.config.mt_album_name);
+        updateUserGreeting();
       }
       updateStats();
       toast(`✅ Backup restaurado — ${coll.pegadas.length} figuritas`, 3000);
@@ -3147,6 +3160,9 @@ const TOUR_STEPS = [
   {target:"nav-config", ico:"⚙️",
    title:"Configuración",
    text:"Configurá tu API key, elegí tu selección favorita y comparé tu colección con otros coleccionistas."},
+  {target:"fab-intercambio", ico:"🤝",
+   title:"Comparar con otro coleccionista",
+   text:"Tocá este botón para compartir con otro coleccionista. Van a ver qué figuritas pueden intercambiar entre sí."},
   {target:"help-btn", ico:"❓",
    title:"Botón de ayuda",
    text:"Este botón siempre está disponible para volver a ver este tour en cualquier momento."},
