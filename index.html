@@ -2200,38 +2200,41 @@ async function callGemini(b64,multi=false){
   const key=getKey();
   if(!key) throw new Error("Error: API key no disponible");
   const prompt=multi
-    ?`You are reading a photo with multiple FIFA World Cup 2026 stickers. For EACH sticker visible return a JSON array (no markdown, no explanation).
-Sticker types:
-- PLAYER: has name, height, weight, club at bottom → {"tipo":"jugador","nombre":"HAJI","apellido":"WRIGHT","altura":"1,93","peso":"90","fecha_nacimiento":"27-3-1998","club":"COVENTRY CITY FC","pais_abreviatura":"USA"}
-- TEAM PHOTO: group photo with "WE ARE [COUNTRY]" vertical text on right → {"tipo":"equipo","pais":"Mexico","texto_visible":"WE ARE MEXICO"}
-- SHIELD/BADGE: foil with team crest → {"tipo":"escudo","texto_visible":"CANADA","pais":"Canada"}
-- FIFA MUSEUM: historical team photo with country+year vertical text → {"tipo":"museum","pais":"Argentina","anio":"1986","texto_visible":"ARGENTINA 1986"}
-- FWC SPECIAL: emblem/mascots/ball/host → {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
-Return ALL stickers. Use null for unreadable fields.`
-    :`You are reading a FIFA World Cup 2026 sticker. Return ONLY a JSON object (no markdown, no explanation).
-Sticker types and how to identify them:
-- PLAYER sticker: has player name, height, weight, club at bottom. Return: {"tipo":"jugador","nombre":"HAJI","apellido":"WRIGHT","altura":"1,93","peso":"90","fecha_nacimiento":"27-3-1998","club":"COVENTRY CITY FC","pais_abreviatura":"USA"}
-- TEAM PHOTO sticker: group photo of national team, has "WE ARE [COUNTRY]" text written vertically on the right side (e.g. "WE ARE MEXICO", "WE ARE ARGENTINA"). Return: {"tipo":"equipo","pais":"Mexico","texto_visible":"WE ARE MEXICO"}
-- SHIELD/BADGE sticker: foil sticker with team logo/crest only. Return: {"tipo":"escudo","texto_visible":"CANADA","pais":"Canada"}
-- FIFA MUSEUM sticker: historical black&white or color team photo with country name and year written vertically (e.g. "ARGENTINA 1986", "BRAZIL 2002"). Return: {"tipo":"museum","pais":"Argentina","anio":"1986","texto_visible":"ARGENTINA 1986"}
-- FWC SPECIAL sticker: official emblem, mascots (Maple/Zavu/Clutch), ball, or host countries. Return: {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
-Use null for unreadable fields.`;
+    ?`Multiple FIFA World Cup 2026 stickers. Return ONLY a JSON array, no markdown.
+Types:
+- PLAYER: {"tipo":"jugador","nombre":"HAJI","apellido":"WRIGHT","altura":"1,93","peso":"90","fecha_nacimiento":"27-3-1998","club":"COVENTRY CITY","pais_abreviatura":"USA"}
+- TEAM PHOTO (WE ARE [COUNTRY] vertical text right side): {"tipo":"equipo","pais":"Mexico","texto_visible":"WE ARE MEXICO"}
+- SHIELD/BADGE (foil crest only): {"tipo":"escudo","texto_visible":"CANADA","pais":"Canada"}
+- FIFA MUSEUM (historical photo, country+year vertical): {"tipo":"museum","pais":"Argentina","anio":"1986","texto_visible":"ARGENTINA 1986"}
+- FWC SPECIAL (emblem/mascots/ball): {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
+Return ALL stickers. Null for unreadable fields.`
+    :`FIFA World Cup 2026 sticker. Return ONLY JSON object, no markdown.
+Types:
+- PLAYER: {"tipo":"jugador","nombre":"HAJI","apellido":"WRIGHT","altura":"1,93","peso":"90","fecha_nacimiento":"27-3-1998","club":"COVENTRY CITY","pais_abreviatura":"USA"}
+- TEAM PHOTO (WE ARE [COUNTRY] vertical text right side): {"tipo":"equipo","pais":"Mexico","texto_visible":"WE ARE MEXICO"}
+- SHIELD/BADGE (foil crest only): {"tipo":"escudo","texto_visible":"CANADA","pais":"Canada"}
+- FIFA MUSEUM (historical photo, country+year vertical): {"tipo":"museum","pais":"Argentina","anio":"1986","texto_visible":"ARGENTINA 1986"}
+- FWC SPECIAL (emblem/mascots/ball): {"tipo":"fwc","texto_visible":"MAPLE ZAVU CLUTCH","descripcion":"mascotas"}
+Null for unreadable fields.`;
 
-  // Use full image — works better for team photos, shields and museum stickers
+  // Cap canvas at 800px for faster Gemini transfer
+  const MAX_PX=800;
   const SCALE=Math.max(3,Math.round(2/imgState.scale));
   const dw=origW*imgState.scale,dh=origH*imgState.scale;
   const left=(FW-dw)/2+imgState.x,top=(FH-dh)/2+imgState.y;
+  const rawW=FW*SCALE,rawH=FH*SCALE;
+  const capScale=Math.min(1,MAX_PX/Math.max(rawW,rawH));
   const fc=document.createElement("canvas");
-  fc.width=FW*SCALE;fc.height=FH*SCALE;
+  fc.width=Math.round(rawW*capScale);fc.height=Math.round(rawH*capScale);
   const ctx=fc.getContext("2d");
   ctx.fillStyle="#000";ctx.fillRect(0,0,fc.width,fc.height);
-  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE,top*SCALE,dw*SCALE,dh*SCALE);
-  const imgB64=fc.toDataURL("image/jpeg",0.92).split(",")[1];
+  ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE*capScale,top*SCALE*capScale,dw*SCALE*capScale,dh*SCALE*capScale);
+  const imgB64=fc.toDataURL("image/jpeg",0.82).split(",")[1];
 
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,{
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
-      generationConfig:{temperature:0,maxOutputTokens:2000}})
+      generationConfig:{temperature:0,maxOutputTokens:400}})
   });
   if(!res.ok){
     const err=await res.json();
