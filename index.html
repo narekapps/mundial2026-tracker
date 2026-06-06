@@ -2277,9 +2277,28 @@ Null for unreadable fields.`;
     throw new Error("Gemini no devolvió JSON válido. Respuesta: "+raw.substring(0,120));
   }
   function tryP(s){
-    try{return JSON.parse(s);}catch{
-      const f=s.replace(/'/g,'"').replace(/([{,]\s*)(\w+)(\s*:)/g,'$1"$2"$3').replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
-      return JSON.parse(f);
+    try{ return JSON.parse(s); } catch(e1){
+      try{
+        // Step 1: remove control characters
+        let f = s.replace(/[\x00-\x1F\x7F]/g, ' ');
+        // Step 2: fix single quotes to double quotes
+        f = f.replace(/'/g, "\"");
+        // Step 3: add quotes to unquoted keys
+        f = f.replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3');
+        // Step 4: remove trailing commas
+        f = f.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+        return JSON.parse(f);
+      } catch(e2){
+        try{
+          // Step 5: sanitize string values
+          const sanitized = s.replace(/"([^"]*)"/g, (match, val) => {
+            return '"' + val.replace(/[^\x20-\x7E]/g, '').replace(/\\/g, '\\\\') + '"';
+          });
+          return JSON.parse(sanitized);
+        } catch(e3){
+          throw new Error("JSON inválido: " + e1.message);
+        }
+      }
     }
   }
   const r=tryP(js[0]);
