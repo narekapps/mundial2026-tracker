@@ -137,6 +137,17 @@ body{background:var(--bg);color:var(--text);
 .btn-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 /* ── Upload & viewfinder ─────────────────────────────────────────────── */
+#camera-stream{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;border-radius:16px}
+#camera-capture-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.6);color:var(--gold);font-size:11px;font-weight:900;
+  padding:4px 10px;border-radius:99px;z-index:5;pointer-events:none;
+  font-family:'Nunito',sans-serif;white-space:nowrap}
+#camera-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:6;
+  border-radius:16px;pointer-events:none;transition:opacity 0.05s}
+#torch-btn{display:none;position:absolute;top:8px;right:8px;z-index:7;
+  background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;
+  color:#fff;line-height:1;-webkit-tap-highlight-color:transparent}
 .upload-label{display:block;background:linear-gradient(135deg,var(--s1),var(--s2));
   border:2px dashed var(--border2);border-radius:var(--radius);padding:16px;
   text-align:center;cursor:pointer;margin-bottom:10px;transition:all 0.2s;
@@ -960,17 +971,18 @@ body{background:var(--bg);color:var(--text);
 
     <!-- Dos botones: cámara directa + galería -->
     <div id="upload-label" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;width:100%">
-      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-        gap:6px;background:linear-gradient(135deg,#003da5,#1a56d4);
+      <button onclick="startCamera()" id="btn-camera"
+        style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:3px;background:linear-gradient(135deg,#003da5,#1a56d4);
         border:2px solid rgba(255,215,0,0.3);border-radius:var(--radius);
-        padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
-        box-shadow:0 4px 16px rgba(0,61,165,0.3)">
-        <span style="font-size:28px">📷</span>
-        <span style="font-size:13px;font-weight:900;color:#fff;font-family:'Nunito',sans-serif">Cámara</span>
-        <span style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:700">Foto directa</span>
-        <input type="file" id="file-input" accept="image/*" capture="environment"
-          style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
-      </label>
+        padding:6px 8px;cursor:pointer;transition:all 0.2s;text-align:center;
+        box-shadow:0 4px 16px rgba(0,61,165,0.3);font-family:'Nunito',sans-serif">
+        <span style="font-size:20px">📷</span>
+        <span style="font-size:12px;font-weight:900;color:#fff">Cámara</span>
+        <span style="font-size:9px;color:rgba(255,255,255,0.7);font-weight:700">Foto directa</span>
+      </button>
+      <input type="file" id="file-input" accept="image/*" capture="environment"
+        style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
       <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:6px;background:linear-gradient(135deg,#1a2035,#2a3a5c);
         border:2px solid rgba(255,255,255,0.1);border-radius:var(--radius);
@@ -985,14 +997,19 @@ body{background:var(--bg);color:var(--text);
     </div>
 
     <div class="vf-wrap" id="vf-wrap">
-      <div class="viewfinder" id="viewfinder" onclick="if(!origW) $('file-input').click()" style="cursor:pointer">
+      <div class="viewfinder" id="viewfinder" onclick="if(cameraStream) captureFromCamera(); else if(!origW) startCamera();" style="cursor:pointer">
         <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
         <div class="vf-corner bl"></div><div class="vf-corner br"></div>
         <div class="vf-prompt" id="vf-prompt">
           <span class="vf-prompt-ico">📸</span>
           <span class="vf-prompt-txt">Subí la foto<br>de la figurita</span>
           <span style="font-size:9px;color:rgba(255,215,0,0.7);font-weight:700;margin-top:4px;display:block">📖 El texto debe leerse normalmente</span>
+          <span style="font-size:9px;color:rgba(255,215,0,0.7);font-weight:700;margin-top:4px;display:block">📖 El texto debe leerse normalmente</span>
         </div>
+        <video id="camera-stream" autoplay playsinline style="display:none"></video>
+        <div id="camera-capture-hint" style="display:none">📷 Tocá para capturar</div>
+        <div id="camera-flash"></div>
+        <button id="torch-btn" onclick="toggleTorch(event)">⚡</button>
         <img id="sticker-img" alt="" draggable="false">
       </div>
       <div class="vf-controls" id="vf-controls">
@@ -1845,6 +1862,7 @@ function findSticker(ocr){
 
 // ── Nav ───────────────────────────────────────────────────────────────────
 function showPage(name){
+  if(name !== "scanner") stopCamera();
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   $("page-"+name).classList.add("active");
@@ -1893,6 +1911,11 @@ function loadImage(file){
     $("err-box").style.display="none";
     // Pulse mode buttons until one is tapped
     setTimeout(startModeButtonPulse, 500);
+    // Auto-scroll to mode buttons
+    setTimeout(()=>{
+      const modeEl = $("mode-row");
+      if(modeEl) modeEl.scrollIntoView({behavior:"smooth", block:"center"});
+    }, 350);
   };
   img.src=url;
 }
@@ -1940,6 +1963,7 @@ $("file-input-gallery").onchange=e=>{if(e.target.files[0])loadImage(e.target.fil
 
 function clearScan(){
   origW=0;
+  stopCamera();
   $("sticker-img").style.display="none";
   $("sticker-img").src="";
   $("vf-prompt").classList.remove("hidden");
@@ -1989,15 +2013,22 @@ function startModeButtonPulse(){
     const m1=$("mode-1"), mv=$("mode-m"), lbl=$("mode-label");
     if(!m1||!mv){stopModeButtonPulse();return;}
     visible=!visible;
-    const glow = visible ? "0 0 14px rgba(255,215,0,0.7)" : "none";
+    const glow = visible
+      ? "0 0 22px rgba(255,215,0,0.95), 0 0 6px rgba(255,215,0,0.6)"
+      : "none";
+    const bg = visible
+      ? "linear-gradient(135deg,rgba(255,215,0,0.18),rgba(255,215,0,0.08))"
+      : "";
     m1.style.borderColor = visible ? "var(--gold)" : "";
     m1.style.boxShadow = glow;
-    m1.style.transform = visible ? "scale(1.03)" : "";
+    m1.style.transform = visible ? "scale(1.06)" : "scale(1)";
+    m1.style.background = bg;
     mv.style.borderColor = visible ? "var(--gold)" : "";
     mv.style.boxShadow = glow;
-    mv.style.transform = visible ? "scale(1.03)" : "";
-    if(lbl) lbl.style.opacity = visible ? "1" : "0.4";
-  }, 700);
+    mv.style.transform = visible ? "scale(1.06)" : "scale(1)";
+    mv.style.background = bg;
+    if(lbl) lbl.style.opacity = visible ? "1" : "0.3";
+  }, 450);
 }
 
 function stopModeButtonPulse(){
@@ -2245,6 +2276,10 @@ async function identify(){
         </div></div>`;
     });
     $("scan-results").innerHTML=html;
+    setTimeout(()=>{
+      const res = $("scan-results");
+      if(res && res.innerHTML) res.scrollIntoView({behavior:"smooth", block:"start"});
+    }, 150);
   }catch(err){showErr(err.message);}
   finally{$("btn-identify").disabled=false;$("prog-box").style.display="none";}
 }
@@ -3001,9 +3036,11 @@ function handleLicenseResponse(data, fp){
     if(data.type === "trial"){
       toast(`🆓 ${data.daysLeft} días de acceso`, 3000);
     }
-    // Extra safety: fire tour
-    const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
-    if(htc < 4){ setTimeout(startTour, 2000); }
+    // Extra safety: fire tour (only if album already initialized)
+    if(localStorage.getItem("mt_init")){
+      const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
+      if(htc < 4){ setTimeout(startTour, 2000); }
+    }
   } else {
     // Expirado o revocado
     $("license-overlay").style.display="flex";
@@ -3180,6 +3217,86 @@ function endTour(){
   // Don't navigate - stay on current page with viewfinder intact
 }
 
+
+
+// ── getUserMedia Camera ───────────────────────────────────────────────────
+let cameraStream = null;
+let torchEnabled = false;
+
+async function startCamera(){
+  if(cameraStream){ captureFromCamera(); return; }
+  stopCamera();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"environment", width:{ideal:1280}, height:{ideal:960} },
+      audio:false
+    });
+    cameraStream = stream;
+    const video = $("camera-stream");
+    video.srcObject = stream;
+    video.style.display = "block";
+    $("camera-capture-hint").style.display = "block";
+    const tb=$("torch-btn"); if(tb) tb.style.display="block";
+    $("vf-prompt").classList.add("hidden");
+    $("viewfinder").style.cursor = "crosshair";
+    try {
+      const track = stream.getVideoTracks()[0];
+      const caps = track.getCapabilities();
+      if(caps.zoom && caps.zoom.max >= 1.5)
+        await track.applyConstraints({advanced:[{zoom:1.5}]});
+    } catch(e){}
+  } catch(err){
+    console.warn("getUserMedia failed:", err.message);
+    $("file-input").click();
+  }
+}
+
+function captureFromCamera(){
+  if(!cameraStream) return;
+  const video = $("camera-stream");
+  if(!video || video.readyState < 2) return;
+  const flash = $("camera-flash");
+  flash.style.opacity = "0.85";
+  setTimeout(()=>{ flash.style.opacity = "0"; }, 130);
+  setTimeout(()=>{
+    const cap = document.createElement("canvas");
+    const vw=video.videoWidth, vh=video.videoHeight;
+    const MAX=1200, scale=Math.min(1,MAX/Math.max(vw,vh));
+    cap.width=Math.round(vw*scale); cap.height=Math.round(vh*scale);
+    cap.getContext("2d").drawImage(video,0,0,cap.width,cap.height);
+    cap.toBlob(blob=>{
+      stopCamera();
+      const file=new File([blob],"capture.jpg",{type:"image/jpeg"});
+      loadImage(file);
+    },"image/jpeg",0.87);
+  }, 80);
+}
+
+function toggleTorch(e){
+  e.stopPropagation();
+  if(!cameraStream) return;
+  torchEnabled = !torchEnabled;
+  const btn=$("torch-btn");
+  btn.style.background = torchEnabled?"rgba(255,215,0,0.8)":"rgba(0,0,0,0.5)";
+  btn.style.color = torchEnabled?"#000":"#fff";
+  try{
+    const track=cameraStream.getVideoTracks()[0];
+    const caps=track.getCapabilities();
+    if(caps.torch) track.applyConstraints({advanced:[{torch:torchEnabled}]});
+    else{ torchEnabled=false; toast("⚡ Flash no disponible en este dispositivo",2000); }
+  }catch(e){ torchEnabled=false; }
+}
+
+function stopCamera(){
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
+  const video=$("camera-stream");
+  if(video){ video.style.display="none"; video.srcObject=null; }
+  $("camera-capture-hint").style.display="none";
+  const tb=$("torch-btn"); if(tb) tb.style.display="none";
+  torchEnabled=false;
+  $("viewfinder").onclick=function(){ if(cameraStream) captureFromCamera(); else if(!origW) startCamera(); };
+  $("viewfinder").style.cursor="pointer";
+}
 
 // ── After license: show registration if needed, then bootApp ─────────────
 function afterLicense(){
