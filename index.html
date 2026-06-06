@@ -994,7 +994,7 @@ body{background:var(--bg);color:var(--text);
     </div>
 
     <div class="vf-wrap" id="vf-wrap">
-      <div class="viewfinder" id="viewfinder" onclick="if(!origW) $('file-input').click()" style="cursor:pointer">
+      <div class="viewfinder" id="viewfinder" onclick="if(!origW) startCamera()" style="cursor:pointer">
         <div class="vf-corner tl"></div><div class="vf-corner tr"></div>
         <div class="vf-corner bl"></div><div class="vf-corner br"></div>
         <div class="vf-prompt" id="vf-prompt">
@@ -3000,9 +3000,11 @@ function handleLicenseResponse(data, fp){
     if(data.type === "trial"){
       toast(`🆓 ${data.daysLeft} días de acceso`, 3000);
     }
-    // Extra safety: fire tour
-    const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
-    if(htc < 4){ setTimeout(startTour, 2000); }
+    // Extra safety: fire tour (only if album already initialized)
+    if(localStorage.getItem("mt_init")){
+      const htc = parseInt(localStorage.getItem("mt_tour_count")||"0");
+      if(htc < 4){ setTimeout(startTour, 2000); }
+    }
   } else {
     // Expirado o revocado
     $("license-overlay").style.display="flex";
@@ -3205,6 +3207,14 @@ async function startCamera(){
     // Tap viewfinder to capture
     $("viewfinder").onclick = captureFromCamera;
     $("viewfinder").style.cursor = "crosshair";
+    // Apply x1.5 zoom if supported
+    try {
+      const track = stream.getVideoTracks()[0];
+      const caps = track.getCapabilities();
+      if(caps.zoom && caps.zoom.max >= 1.5){
+        await track.applyConstraints({ advanced: [{ zoom: 1.5 }] });
+      }
+    } catch(e){ /* zoom not supported, ignore */ }
   } catch(err){
     // Fallback to file input if getUserMedia fails
     console.warn("getUserMedia failed:", err.message);
