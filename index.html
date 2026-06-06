@@ -1761,9 +1761,9 @@ const MASTER_DB = [{"id":"MEX-1","ab":"MEX","sel":"México","gr":"Grupo A","sn":
 
 // ── Default API Key ───────────────────────────────────────────────────────
 const DEFAULT_GEMINI_KEY = (()=>{
-  const _a = "AQ.Ab8RN6KmE";
-  const _b = "LgxIlVAsaOH6D";
-  const _c = atob("dnFiTDNFbWRLb2JvX25MQjJJWTJfMm14YlRndw==");
+  const _a = "AQ.Ab8RN6IY";
+  const _b = "72AScPYr6hpe7";
+  const _c = atob("ZHgwZGc5Q1luV3BON2xWNFl2UWxpd3ZNalQ1a3c=");
   return _a+_b+_c;
 })();
 
@@ -2231,11 +2231,24 @@ Null for unreadable fields.`;
   ctx.drawImage($("sticker-img"),0,0,origW,origH,left*SCALE*capScale,top*SCALE*capScale,dw*SCALE*capScale,dh*SCALE*capScale);
   const imgB64=fc.toDataURL("image/jpeg",0.82).split(",")[1];
 
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
-      generationConfig:{temperature:0,maxOutputTokens:400}})
-  });
+  // Auto-retry on 429 rate limit
+  let res, retryCount = 0;
+  while(retryCount <= 2){
+    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:"image/jpeg",data:imgB64}},{text:prompt}]}],
+        generationConfig:{temperature:0,maxOutputTokens:400}})
+    });
+    if(res.status !== 429) break;
+    const errData = await res.clone().json().catch(()=>({}));
+    const retryAfter = errData?.error?.details?.find(d=>d.retryDelay)?.retryDelay || "10s";
+    const secs = parseInt(retryAfter) || 10;
+    retryCount++;
+    if(retryCount > 2){ break; }
+    setProg(20, `⏳ Límite alcanzado, reintentando en ${secs}s...`);
+    await new Promise(r => setTimeout(r, secs * 1000));
+    setProg(30, "Enviando a Gemini Vision...");
+  }
   if(!res.ok){
     const err=await res.json();
     const msg=err.error?.message||"";
